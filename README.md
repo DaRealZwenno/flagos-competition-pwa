@@ -1,73 +1,41 @@
-# React + TypeScript + Vite
+# FlagOS
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+FlagOS is the all-in-one platform for Flag Football — built for players, coaches, referees, and organizers.
 
-Currently, two official plugins are available:
+## Vision
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Flag Football deserves a platform that handles everything in one place. FlagOS aims to be that platform — starting in Germany, growing across Europe, and eventually worldwide.
 
-## React Compiler
+Everything Flag Football needs, nothing it doesn't:
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- **Team management** — rosters, roles, communication
+- **Leagues & tournaments** — scheduling, standings, results
+- **Game day** — synchronized scoreboard and play clocks for sidelines and spectators
+- **Stats & scouting** — player stats, game film uploads, playbook sharing
+- **Referees** — penalty tracking and clock control from a mobile device
+- **Community** — share plays, exchange knowledge, connect with the Flag Football world
 
-## Expanding the ESLint configuration
+One app. No switching between tools.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Guiding Principle
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+> User first — everything should be as simple as possible for the person using it.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Tech Stack
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- [React 19](https://react.dev) + [TypeScript](https://www.typescriptlang.org)
+- [Vite](https://vite.dev) — fast dev server and build tool
+- [Tailwind CSS v4](https://tailwindcss.com)
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Getting Started
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+```bash
+# Install dependencies
+npm install
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
 ```
