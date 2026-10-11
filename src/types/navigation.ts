@@ -5,4 +5,5 @@ export type AppPage =
   | "schedule"
   | "results"
   | "standings"
-  | "public-display";
+  | "public-display"
+  | "team-directory";

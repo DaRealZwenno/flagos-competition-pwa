@@ -8,4 +8,5 @@ export const navigationItems: { id: AppPage; label: string }[] = [
   { id: "results", label: "Ergebnisse" },
   { id: "standings", label: "Tabellen" },
   { id: "public-display", label: "Public Display" },
+  { id: "team-directory", label: "Team-Verzeichnis" },
 ];
