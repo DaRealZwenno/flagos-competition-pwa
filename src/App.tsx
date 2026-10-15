@@ -10,15 +10,16 @@ import TeamsPage from "./admin/TeamsPage";
 import RequestsPage from "./admin/RequestsPage";
 import TeamImportsPage from "./admin/TeamImportsPage";
 import TeamDirectoryPublicPage from "./pages/TeamDirectoryPublicPage";
+import UpdateBanner from "./components/UpdateBanner";
 
 const pageContent: Record<
   Exclude<AppPage, "dashboard">,
   { title: string; description: string }
 > = {
-  "tournament-control": {
-    title: "Turnierleitung",
+  "competition-control": {
+    title: "Leitung",
     description:
-      "Zentrale Steuerung für Check-in, Felder, Spielstatus, Rollen und operative Entscheidungen am Turniertag.",
+      "Zentrale Steuerung für Check-in, Felder, Spielstatus, Rollen und operative Entscheidungen am Turnier- oder Spieltag.",
   },
   teams: {
     title: "Teams",
@@ -28,12 +29,12 @@ const pageContent: Record<
   schedule: {
     title: "Spielplan",
     description:
-      "Spielplan für Gruppenphase, Platzierungsspiele und Finals über mehrere Felder hinweg.",
+      "Spielplan für Gruppenphase, Platzierungsspiele und Finals bzw. für einen Spieltag, auch über mehrere Felder hinweg.",
   },
   results: {
     title: "Ergebnisse",
     description:
-      "Ergebniserfassung für Field Manager und Turnierleitung mit späterer Live-Aktualisierung.",
+      "Ergebniserfassung für Feldleitung und Turnierleitung mit späterer Live-Aktualisierung.",
   },
   standings: {
     title: "Tabellen",
@@ -96,15 +97,18 @@ function App() {
 
   if (isAdmin) {
     return (
-      <AdminLayout activePage={adminPage} onNavigate={setAdminPage}>
-        {adminPage === "teams"    && <TeamsPage />}
-        {adminPage === "imports"  && <TeamImportsPage />}
-        {adminPage === "requests" && <RequestsPage />}
-      </AdminLayout>
+      <>
+        <AdminLayout activePage={adminPage} onNavigate={setAdminPage}>
+          {adminPage === "teams"    && <TeamsPage />}
+          {adminPage === "imports"  && <TeamImportsPage />}
+          {adminPage === "requests" && <RequestsPage />}
+        </AdminLayout>
+        <UpdateBanner />
+      </>
     );
   }
 
-  // Normale Tournament-PWA
+  // Normale Competition-PWA
   const currentPage =
     activePage === "dashboard" ? (
       <DashboardPage />
@@ -118,9 +122,12 @@ function App() {
     );
 
   return (
-    <AppLayout activePage={activePage} onNavigate={setActivePage}>
-      {currentPage}
-    </AppLayout>
+    <>
+      <AppLayout activePage={activePage} onNavigate={setActivePage}>
+        {currentPage}
+      </AppLayout>
+      <UpdateBanner />
+    </>
   );
 }
 

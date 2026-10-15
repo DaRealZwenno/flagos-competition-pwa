@@ -1,41 +1,64 @@
-# FlagOS
+# FlagOS Competition
 
-FlagOS is the all-in-one platform for Flag Football — built for players, coaches, referees, and organizers.
+PWA für **Turnier und Spieltag** im Flag Football – Spielplan, Ergebnisse, Tabellen und Public Display.
+Zieladresse: **https://competition.flagos.app** (passwortgeschützte Testphase, gleiche Zugänge wie Broadcast und Stadium).
 
-## Vision
+Vorher hieß das Projekt „Tournament Control“ (`flagos-pwa`, pwa.flagos.app). „Competition“ ist der Oberbegriff, weil es nicht nur Turniere gibt,
+sondern auch Spieltage (und später Ligen). Konzept: `20_Product/30_Features/20_Competition/FlagOS_Competition_Concept_V0.1_Draft.md` im Projektordner FlagOS.
 
-Flag Football deserves a platform that handles everything in one place. FlagOS aims to be that platform — starting in Germany, growing across Europe, and eventually worldwide.
+## Stand
 
-Everything Flag Football needs, nothing it doesn't:
+| Bereich | Route / Zugang | Stand |
+| --- | --- | --- |
+| Dashboard | Startseite | Dummy-Zahlen, Stufe 1 ersetzt sie durch echte Daten |
+| Leitung, Teams, Spielplan, Ergebnisse, Tabellen, Public Display | Seitenleiste / Tab-Leiste | Platzhalter (Stufen 1–4 im Konzept) |
+| Team-Verzeichnis | Seitenleiste | nutzbar (öffentliche Liste der freigegebenen Teams) |
+| Admin (Team-Verzeichnis verwalten, Team-Importe, Registrierungsanfragen) | `#admin` | nutzbar, Login mit FlagOS-Konto (Plattform-Admin) |
 
-- **Team management** — rosters, roles, communication
-- **Leagues & tournaments** — scheduling, standings, results
-- **Game day** — synchronized scoreboard and play clocks for sidelines and spectators
-- **Stats & scouting** — player stats, game film uploads, playbook sharing
-- **Referees** — penalty tracking and clock control from a mobile device
-- **Community** — share plays, exchange knowledge, connect with the Flag Football world
+Die Daten liegen im FlagOS-Supabase-Projekt. Die Tabellen heißen dort noch `tournament_*` (Umbenennung in `competitions` folgt, siehe Konzept Abschnitt 7).
+Das Broadcast Studio schreibt Spieltage und Live-Stände in dieselben Tabellen.
 
-One app. No switching between tools.
+## Tech-Stack
 
-## Guiding Principle
+- React 19, TypeScript, Vite, Tailwind CSS v4
+- Supabase JS (Anmeldung, Daten, Realtime)
+- vite-plugin-pwa (Service Worker nur für die App-Hülle, „Update verfügbar“-Hinweis)
 
-> User first — everything should be as simple as possible for the person using it.
-
-## Tech Stack
-
-- [React 19](https://react.dev) + [TypeScript](https://www.typescriptlang.org)
-- [Vite](https://vite.dev) — fast dev server and build tool
-- [Tailwind CSS v4](https://tailwindcss.com)
-
-## Getting Started
+## Entwickeln
 
 ```bash
-# Install dependencies
-npm install
+npm ci
+npm run dev          # http://localhost:5173/   (Admin: /#admin)
+npm run build        # tsc -b + Produktionsbuild
+npx eslint .
+```
 
-# Start development server
-npm run dev
+`.env.local` (nicht im Repo) braucht `VITE_SUPABASE_URL` und `VITE_SUPABASE_ANON_KEY` (öffentlicher Schlüssel, wie in Broadcast und Stadium).
+Port **5173**; Broadcast läuft auf 5174, Stadium auf 5175.
 
-# Build for production
-npm run build
+## Veröffentlichen
+
+```bash
+git checkout main && git pull
+npm run deploy                  # prüfen → bauen → hochladen → nachprüfen
+npm run deploy -- --dry-run     # nur simulieren
+npm run deploy -- --rollback    # frühere Releases anzeigen / zurückspielen
+```
+
+Einrichtung (einmalig): Subdomain `competition.flagos.app` in cPanel anlegen (Dokumentenstamm `competition.flagos.app`, SSL),
+`deploy/deploy.config.example` nach `deploy/deploy.config` kopieren und ausfüllen. Details in `AGENTS.md`.
+
+## Struktur
+
+```
+src/
+  admin/        Admin-Bereich (#admin)
+  components/   gemeinsame Bausteine (StatCard, UpdateBanner)
+  data/         Navigation
+  layouts/      App-Rahmen
+  lib/          PWA-Updates
+  pages/        Seiten (Dashboard, Platzhalter, Team-Verzeichnis)
+  services/     Supabase-Zugriff und Realtime
+  types/        Datenmodelle (spiegeln die Datenbank)
+deploy/         Deploy-Skript, Server-Regeln (htaccess.template)
 ```

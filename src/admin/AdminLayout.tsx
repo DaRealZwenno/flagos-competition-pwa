@@ -25,10 +25,6 @@ export default function AdminLayout({ children, activePage, onNavigate }: Props)
     localStorage.setItem('flagos-admin-theme', theme)
   }, [theme])
 
-  function toggleTheme() {
-    setTheme(t => t === 'dark' ? 'light' : 'dark')
-  }
-
   async function handleLogout() {
     await supabase.auth.signOut()
     window.location.href = window.location.origin

@@ -116,19 +116,19 @@ function TeamDirectoryPublicPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
 
   useEffect(() => {
-    loadTeams();
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from("directory_teams")
+        .select("*, club:directory_clubs(*)")
+        .eq("review_status", "approved")
+        .order("public_name");
+      if (cancelled) return;
+      setTeams(data ?? []);
+      setLoading(false);
+    })();
+    return () => { cancelled = true; };
   }, []);
-
-  async function loadTeams() {
-    setLoading(true);
-    const { data } = await supabase
-      .from("directory_teams")
-      .select("*, club:directory_clubs(*)")
-      .eq("review_status", "approved")
-      .order("public_name");
-    setTeams(data ?? []);
-    setLoading(false);
-  }
 
   const states = Array.from(new Set(teams.map(t => t.state).filter(Boolean))).sort();
 

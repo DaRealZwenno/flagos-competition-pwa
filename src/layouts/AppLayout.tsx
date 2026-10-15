@@ -1,9 +1,10 @@
 import type { AppPage } from "../types/navigation";
 import { navigationItems } from "../data/navigationItems";
+import { appVersion } from "../lib/pwaUpdate";
 
 const NAV_ICONS: Record<string, string> = {
   "dashboard":          "◈",
-  "tournament-control": "⚑",
+  "competition-control": "⚑",
   "teams":              "◎",
   "schedule":           "▦",
   "results":            "✦",
@@ -57,10 +58,15 @@ function AppLayout({ children, activePage, onNavigate }: AppLayoutProps) {
 
         {/* Active event pill */}
         <div className="m-3 rounded-xl border border-white/10 bg-white/5 px-4 py-3">
-          <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Event</p>
+          <p className="text-[10px] uppercase tracking-[0.2em] text-slate-500">Demo-Event</p>
           <p className="mt-0.5 text-sm font-bold truncate">Donau Bowl</p>
           <p className="text-xs text-slate-400">8 Teams · 2 Felder</p>
         </div>
+
+        {/* Version (zum Prüfen, was live ist) */}
+        <p className="px-5 pb-4 text-[10px] text-slate-600" title={appVersion.buildId}>
+          v{appVersion.version} · {appVersion.commit}{appVersion.dirty ? " ·dev" : ""}
+        </p>
       </aside>
 
       {/* ── Main area ── */}
@@ -71,10 +77,10 @@ function AppLayout({ children, activePage, onNavigate }: AppLayoutProps) {
           <div className="flex items-center justify-between gap-4">
             <div>
               <h1 className="text-2xl font-black tracking-tight sm:text-4xl">
-                Tournament Control
+                Competition
               </h1>
               <p className="mt-1 text-sm text-slate-400 sm:text-base">
-                Your Game starts here. Zentrale Web-App für Turnierleitung, Teams und Public Display.
+                Your Game starts here. Zentrale Web-App für Turnier und Spieltag: Spielplan, Ergebnisse, Tabellen und Public Display.
               </p>
             </div>
             <div className="hidden sm:block flex-shrink-0 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 shadow-xl shadow-black/20">

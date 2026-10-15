@@ -3,6 +3,7 @@ node_modules/
 
 # Build output
 dist/
+dev-dist/
 build/
 
 # Environment files
@@ -23,3 +24,11 @@ pnpm-debug.log*
 
 # Editor
 .vscode/
+
+
+# Deploy-Zugangsdaten und Rollback-Archiv
+deploy/deploy.config
+deploy/releases/
+
+# Claude Code
+.claude/
