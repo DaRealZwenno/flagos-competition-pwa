@@ -1,8 +1,9 @@
 export type AppPage =
   | "dashboard"
-  | "tournament-control"
+  | "competition-control"
   | "teams"
   | "schedule"
   | "results"
   | "standings"
-  | "public-display";
+  | "public-display"
+  | "team-directory";

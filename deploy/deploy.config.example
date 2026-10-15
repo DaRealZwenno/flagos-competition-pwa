@@ -1,0 +1,16 @@
+# Kopieren nach deploy/deploy.config und ausfüllen (wird NICHT eingecheckt). Nur KEY="WERT"-Zeilen, kein Shell-Code.
+
+# Server aus cPanel (rechte Spalte „Gemeinsam genutzte IP“ bzw. Server-Name)
+SSH_HOST="server.example.de"
+SSH_PORT="22"
+# cPanel-Benutzername
+SSH_USER="cpanelbenutzer"
+# Privater Schlüssel auf deinem Mac
+SSH_KEY="$HOME/.ssh/flagos_serverprofis"
+
+# Dokumentenstamm der Subdomain (relativ zum Home-Verzeichnis)
+REMOTE_DIR="competition.flagos.app"
+
+# Passwortdatei aus dem cPanel-Verzeichnisschutz (absoluter Pfad).
+# Standard: dieselbe Datei wie Broadcast → gleiche Zugänge für alle FlagOS-Apps.
+AUTH_USER_FILE="/home/cpanelbenutzer/.htpasswds/broadcast.flagos.app/passwd"

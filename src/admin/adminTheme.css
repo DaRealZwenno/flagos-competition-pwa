@@ -1,0 +1,99 @@
+/* ─── FlagOS Admin — Light Mode ─────────────────────────────────────────────
+   Sidebar (aside) bleibt immer Navy/Lime.
+   Scope: [data-admin-theme="light"] — trifft main + fixed Modals (gleicher DOM-Baum)
+   ─────────────────────────────────────────────────────────────────────────── */
+
+/* Content-Bereich */
+[data-admin-theme="light"] main {
+  background-color: #f1f5f9;
+  color: #0f172a;
+}
+
+/* Primärer Text */
+[data-admin-theme="light"] main .text-slate-50,
+[data-admin-theme="light"] main .text-white {
+  color: #0f172a !important;
+}
+
+/* Sekundärer Text */
+[data-admin-theme="light"] main .text-slate-300 { color: #334155 !important; }
+[data-admin-theme="light"] main .text-slate-400 { color: #64748b !important; }
+[data-admin-theme="light"] main .text-slate-500 { color: #94a3b8 !important; }
+
+/* Flächen */
+[data-admin-theme="light"] main .bg-white\/\[0\.04\],
+[data-admin-theme="light"] main .bg-white\/\[0\.03\] { background-color: #f8fafc !important; }
+[data-admin-theme="light"] main .bg-white\/5         { background-color: rgba(0,0,0,0.03) !important; }
+[data-admin-theme="light"] main .bg-white\/\[0\.02\] { background-color: rgba(0,0,0,0.02) !important; }
+[data-admin-theme="light"] main .hover\:bg-white\/\[0\.02\]:hover { background-color: rgba(0,0,0,0.03) !important; }
+[data-admin-theme="light"] main .hover\:bg-white\/\[0\.06\]:hover { background-color: rgba(0,0,0,0.05) !important; }
+[data-admin-theme="light"] main .hover\:bg-white\/5:hover  { background-color: rgba(0,0,0,0.04) !important; }
+[data-admin-theme="light"] main .hover\:bg-white\/10:hover { background-color: rgba(0,0,0,0.06) !important; }
+
+/* Tabelle Container */
+[data-admin-theme="light"] main .overflow-x-auto.rounded-2xl {
+  background-color: #ffffff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
+}
+
+/* Rahmen */
+[data-admin-theme="light"] main .border-white\/10   { border-color: #e2e8f0 !important; }
+[data-admin-theme="light"] main .border-white\/5    { border-color: #f1f5f9 !important; }
+[data-admin-theme="light"] main .divide-white\/5 > * + * { border-color: #f1f5f9 !important; }
+
+/* Inputs + Selects */
+[data-admin-theme="light"] main input,
+[data-admin-theme="light"] main select,
+[data-admin-theme="light"] main textarea {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+}
+[data-admin-theme="light"] main input::placeholder { color: #94a3b8 !important; }
+[data-admin-theme="light"] main select option      { background-color: #ffffff; color: #0f172a; }
+
+/* Modals — fixed Kinder von main (DOM-Ancestor bleibt main) */
+[data-admin-theme="light"] main .bg-\[\#0b1b2f\] {
+  background-color: #ffffff !important;
+  color: #0f172a;
+}
+[data-admin-theme="light"] main .bg-\[\#0b1b2f\] .text-slate-50,
+[data-admin-theme="light"] main .bg-\[\#0b1b2f\] .text-white { color: #0f172a !important; }
+[data-admin-theme="light"] main .bg-\[\#0b1b2f\] .text-slate-400 { color: #64748b !important; }
+[data-admin-theme="light"] main .bg-\[\#0b1b2f\] .border-white\/10 { border-color: #e2e8f0 !important; }
+[data-admin-theme="light"] main .bg-\[\#0b1b2f\] .text-slate-500 { color: #94a3b8 !important; }
+
+/* ── Filter-Pills & aktive Zustände im Light Mode ────────────────────────── */
+
+/* Aktive Filter-Pills (RequestsPage, TeamsPage): Navy bg + Lime text */
+[data-admin-theme="light"] main .bg-\[\#C6FF00\]\/20,
+[data-admin-theme="light"] main .bg-\[\#C6FF00\]\/10,
+[data-admin-theme="light"] main .bg-\[\#C6FF00\]\/15 {
+  background-color: #0f172a !important;
+}
+[data-admin-theme="light"] main .text-\[\#C6FF00\] {
+  color: #C6FF00 !important;
+}
+
+/* border-[#C6FF00] Akzente dezent */
+[data-admin-theme="light"] main .border-\[\#C6FF00\]\/40,
+[data-admin-theme="light"] main .border-\[\#C6FF00\]\/50 {
+  border-color: rgba(198, 255, 0, 0.4) !important;
+}
+
+/* Inaktive Filter-Pills */
+[data-admin-theme="light"] main .bg-white\/5 {
+  background-color: #e8edf2 !important;
+}
+
+/* Anfragen-Karten (RequestsPage) */
+[data-admin-theme="light"] main .rounded-2xl.bg-white\/\[0\.03\] {
+  background-color: #ffffff !important;
+  border-color: #e2e8f0 !important;
+}
+
+/* FilterSelect aktiver Zustand (grüner Rahmen + grüner Text) */
+[data-admin-theme="light"] main .border-\[\#C6FF00\]\/40.bg-\[\#C6FF00\]\/10 {
+  background-color: #0f172a !important;
+  border-color: rgba(198, 255, 0, 0.5) !important;
+}

@@ -1,0 +1,72 @@
+# ============================================================
+# FlagOS Competition – Server-Regeln für competition.flagos.app (LiteSpeed, Apache-Syntax)
+# Wird von deploy/deploy.sh nach dist/.htaccess geschrieben.
+# NICHT im cPanel-Dateimanager bearbeiten – Änderungen hier machen.
+# Zuständigkeit: Diese Datei gehört dem Deployment. Benutzer/Passwörter
+# weiterhin in cPanel → Verzeichnisschutz pflegen (Passwortdatei unten).
+# ============================================================
+
+Options -Indexes
+
+# ---------- Zugangsschutz (Testphase) ----------
+AuthType Basic
+AuthName "FlagOS Competition"
+AuthUserFile "__AUTH_USER_FILE__"
+Require valid-user
+# Ausnahmen nur für Zertifikats-Prüfung: .well-known/acme-challenge, /pki-validation
+# und /cpanel-dcv haben je eine eigene .htaccess (legt deploy.sh an).
+
+# ---------- Sensible Dateien nie ausliefern ----------
+<FilesMatch "(?i)(^\.env(\..*)?$|^\.user\.ini$|^php\.ini$|^error_log$|^\.ht|\.(map|log|sql|bak|zip|tar|gz)$)">
+  Require all denied
+</FilesMatch>
+
+# ---------- Sicherheits-Header (auch auf 401/404) ----------
+<IfModule mod_headers.c>
+  Header always set X-Robots-Tag "noindex, nofollow"
+  # HSTS bewusst kurz (1 Tag) in der Testphase – nach Prüfung auf 31536000 erhöhen.
+  # Kein includeSubDomains: andere *.flagos.app-Seiten nicht mitziehen.
+  Header always set Strict-Transport-Security "max-age=86400"
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set Referrer-Policy "no-referrer"
+  # Nicht in fremde Seiten einbetten
+  Header always set X-Frame-Options "SAMEORIGIN"
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+  # Durchgesetzt: nur die risikoarmen Direktiven
+  Header always set Content-Security-Policy "frame-ancestors 'self'; object-src 'none'; base-uri 'self'"
+  # Volle Policy erst beobachten (Browser-Konsole), dann durchsetzen
+  Header always set Content-Security-Policy-Report-Only "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://afqqeznlzamobmhrkqyt.supabase.co; font-src 'self' data:; connect-src 'self' https://afqqeznlzamobmhrkqyt.supabase.co wss://afqqeznlzamobmhrkqyt.supabase.co; frame-src 'self'; worker-src 'self'; manifest-src 'self'; media-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
+</IfModule>
+
+# ---------- Dateitypen ----------
+AddType application/manifest+json .webmanifest
+AddType application/json .json
+
+# ---------- Weiterleitungen + App-Routen ----------
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+
+  # Fester Zielhost (kein Client-Host übernehmen); www → ohne www
+  RewriteCond %{HTTPS} !=on [OR]
+  RewriteCond %{HTTP_HOST} !^competition\.flagos\.app$ [NC]
+  RewriteCond %{REQUEST_URI} !^/\.well-known/(acme-challenge|pki-validation|cpanel-dcv)/
+  RewriteRule ^ https://competition.flagos.app%{REQUEST_URI} [R=301,L]
+
+  # Technische Pfade nie auf index.html umbiegen → fehlende Datei = echter 404
+  RewriteRule ^(assets|icons|\.well-known)(/|$) - [L]
+  RewriteRule ^(sw\.js|registerSW\.js|manifest\.webmanifest|version\.json|favicon\.(ico|svg)|apple-touch-icon\.png)$ - [L]
+  RewriteRule ^workbox-[^/]+\.js$ - [L]
+
+  # Unbekannte Pfade → index.html (Admin läuft über #admin)
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^ /index.html [L]
+</IfModule>
+
+# ---------- Caching ----------
+<IfModule mod_headers.c>
+  # App-Hülle, Service Worker, Versionsdatei: immer neu prüfen, nie in geteilten Caches
+  <FilesMatch "^(index\.html|sw\.js|registerSW\.js|manifest\.webmanifest|version\.json)$">
+    Header always set Cache-Control "private, no-cache, must-revalidate"
+  </FilesMatch>
+</IfModule>

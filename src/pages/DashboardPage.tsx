@@ -1,6 +1,6 @@
 import StatCard from "../components/StatCard";
 
-const tournamentStats = [
+const competitionStats = [
   { label: "Teams", value: "8" },
   { label: "Gruppen", value: "2" },
   { label: "Felder", value: "2" },
@@ -16,17 +16,17 @@ function DashboardPage() {
         </p>
 
         <h2 className="mt-3 text-2xl font-black sm:text-4xl">
-          Turnierstatus auf einen Blick.
+          Status auf einen Blick.
         </h2>
 
         <p className="mt-3 max-w-2xl text-slate-300">
           Grundlage für Spielplan, Ergebniserfassung, Tabellen und öffentliche
-          Anzeigen. Aktuell noch mit lokalen Dummy-Daten.
+          Anzeigen, für Turnier und Spieltag. Aktuell noch mit lokalen Dummy-Daten.
         </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {tournamentStats.map((item) => (
+        {competitionStats.map((item) => (
           <StatCard key={item.label} label={item.label} value={item.value} />
         ))}
       </div>
