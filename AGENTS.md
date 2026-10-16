@@ -8,7 +8,7 @@ Verfahren, Stack und Deployment sind aus FlagOS Broadcast und Stadium übernomme
 
 ## Feste Regeln
 - Nichts ohne Rückfrage auf Live-Systeme anwenden (Supabase-Migrationen, Daten, Einstellungen, Server).
-- **Die Datenbank-Tabellen heißen weiter `tournament_*`**, bis die Umbenennung freigegeben und migriert ist (Konzept, Abschnitt 7). Das Studio und die iOS-App laufen gegen dieselben Tabellen – nichts umbenennen, nichts löschen, keine Spalten ändern. Typen und Services (`Tournament…`) spiegeln die Datenbank und bleiben deshalb vorerst so.
+- **Namensgebung (entschieden 16.10.2026, Konzept Abschnitt 7.2):** Die bestehenden Tabellen, Typen und die View heißen weiter `tournament_*` (technischer Name), das Produkt heißt Competition. **Neue Tabellen und Funktionen bekommen das Präfix `competition_`**, neue Spalten an bestehenden Tabellen normale Namen. Nichts umbenennen, nichts löschen: Broadcast Studio (live), iOS-App und diese PWA hängen an den Namen. Das „Gerade ziehen“ passiert erst vor der Live-Schaltung (Konzept 7.3); bis dahin Fundstücke in die Sammelliste am Ende des Konzepts eintragen. Typen und Services (`Tournament…`) spiegeln die Datenbank und bleiben deshalb so; Tabellennamen nur in der Zugriffsschicht (`src/services`) verwenden, nicht in Seiten.
 - `app_role` nie als Competition-Recht werten; Rechte gelten pro Competition (geplant: `competition_members`).
 - Importierte, noch nicht freigegebene Spieltage (`team_events.approval_status = 'pending'`) dürfen nie öffentlich erscheinen.
 - **Sicherheit bei jedem Schritt** (Prüfung am 16.10.2026: die Rohtabellen `tournament_*` sind für `anon` pauschal lesbar, Freigabe wirkt dort nicht):

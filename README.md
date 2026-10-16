@@ -15,7 +15,7 @@ sondern auch Spieltage (und später Ligen). Konzept: `20_Product/30_Features/20_
 | Team-Verzeichnis | Seitenleiste | nutzbar (öffentliche Liste der freigegebenen Teams) |
 | Admin (Team-Verzeichnis verwalten, Team-Importe, Registrierungsanfragen) | `#admin` | nutzbar, Login mit FlagOS-Konto (Plattform-Admin) |
 
-Die Daten liegen im FlagOS-Supabase-Projekt. Die Tabellen heißen dort noch `tournament_*` (Umbenennung in `competitions` folgt, siehe Konzept Abschnitt 7).
+Die Daten liegen im FlagOS-Supabase-Projekt. Die Tabellen heißen dort `tournament_*` (technischer Name, bleibt vorerst so); neue Tabellen bekommen das Präfix `competition_`. Ob und wann umbenannt wird, entscheidet die Bereinigung vor der Live-Schaltung (Konzept, Abschnitt 7).
 Das Broadcast Studio schreibt Spieltage und Live-Stände in dieselben Tabellen.
 
 ## Tech-Stack
