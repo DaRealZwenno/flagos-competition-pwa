@@ -8,7 +8,7 @@ Verfahren, Stack und Deployment sind aus FlagOS Broadcast und Stadium übernomme
 
 ## Feste Regeln
 - Nichts ohne Rückfrage auf Live-Systeme anwenden (Supabase-Migrationen, Daten, Einstellungen, Server).
-- **Namensgebung (entschieden 16.10.2026, Konzept Abschnitt 7.2):** Die bestehenden Tabellen, Typen und die View heißen weiter `tournament_*` (technischer Name), das Produkt heißt Competition. **Neue Tabellen und Funktionen bekommen das Präfix `competition_`**, neue Spalten an bestehenden Tabellen normale Namen. Nichts umbenennen, nichts löschen: Broadcast Studio (live), iOS-App und diese PWA hängen an den Namen. Das „Gerade ziehen“ passiert erst vor der Live-Schaltung (Konzept 7.3); bis dahin Fundstücke in die Sammelliste am Ende des Konzepts eintragen. Typen und Services (`Tournament…`) spiegeln die Datenbank und bleiben deshalb so; Tabellennamen nur in der Zugriffsschicht (`src/services`) verwenden, nicht in Seiten.
+- **Namensgebung (entschieden 16.10.2026, Konzept Abschnitt 7.2):** Die bestehenden Tabellen, Typen und die View heißen weiter `tournament_*` (technischer Name), das Produkt heißt Competition. **Neue Tabellen und Funktionen bekommen das Präfix `competition_`**, neue Spalten an bestehenden Tabellen normale Namen. Nichts umbenennen, nichts löschen: Broadcast Studio (live), iOS-App und diese PWA hängen an den Namen. Das „Gerade ziehen“ passiert erst vor der Live-Schaltung (Konzept 7.3); bis dahin Fundstücke in die Sammelliste am Ende des Konzepts eintragen. Typen und Services (`Tournament…`) spiegeln die Datenbank und bleiben deshalb so; Tabellennamen nur in der Zugriffsschicht `src/services/competitionApi.ts` verwenden, nicht in Seiten; die Seiten arbeiten mit `src/types/competition.ts`.
 - `app_role` nie als Competition-Recht werten; Rechte gelten pro Competition (geplant: `competition_members`).
 - Importierte, noch nicht freigegebene Spieltage (`team_events.approval_status = 'pending'`) dürfen nie öffentlich erscheinen.
 - **Sicherheit bei jedem Schritt** (Prüfung am 16.10.2026: die Rohtabellen `tournament_*` sind für `anon` pauschal lesbar, Freigabe wirkt dort nicht):
@@ -34,6 +34,7 @@ Verfahren, Stack und Deployment sind aus FlagOS Broadcast und Stadium übernomme
 2. Vor Abgabe prüfen, alles muss fehlerfrei sein:
    - `npx tsc -b`
    - `npx eslint .`
+   - `npm test`
    - `npx vite build`
    - Bei UI-Änderungen: im Browser bzw. mit Playwright in Handy-Ansicht (390 × 844, Touch), iPad (1180 × 820) und Laptop (1440 × 900) prüfen.
 3. Kurz zusammenfassen, was sich geändert hat und warum (auf Deutsch, ohne Schrittprotokoll).

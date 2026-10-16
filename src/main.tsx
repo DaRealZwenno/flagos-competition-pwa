@@ -7,9 +7,11 @@ import "./index.css";
 import App from "./App.tsx";
 import { initPwaUpdates } from "./lib/pwaUpdate";
 import { startAuth } from "./lib/auth";
+import { startCompetitions } from "./lib/competitions";
 
 initPwaUpdates();
 startAuth();
+startCompetitions();
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>

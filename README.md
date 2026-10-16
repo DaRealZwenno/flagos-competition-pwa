@@ -10,8 +10,9 @@ sondern auch Spieltage (und später Ligen). Konzept: `20_Product/30_Features/20_
 
 | Bereich | Route | Stand |
 | --- | --- | --- |
-| Dashboard | `/` | Dummy-Zahlen, Stufe 1 ersetzt sie durch echte Daten |
-| Leitung, Teams, Spielplan, Ergebnisse, Tabellen, Public Display | `/leitung`, `/teams`, `/spielplan`, `/ergebnisse`, `/tabellen`, `/display` | Platzhalter (Stufen 1–4 im Konzept) |
+| Dashboard | `/` | Stufe 1: alle sichtbaren Competitions als Karten, Kennzahlen und Fortschritt der gewählten Competition |
+| Spielplan, Ergebnisse, Tabellen, Teams | `/spielplan`, `/ergebnisse`, `/tabellen`, `/teams` | Stufe 1: echte Daten, nur lesen, aktualisiert sich selbst (Realtime, alle 30 s als Rückfall) |
+| Leitung, Public Display | `/leitung`, `/display` | Platzhalter (Stufen 3 und 4 im Konzept) |
 | Team-Verzeichnis | `/verzeichnis` | nutzbar (öffentliche Liste der freigegebenen Teams, Standardansicht Liste) |
 | Konto / Anmelden | `/konto` | Login mit FlagOS-Konto (Supabase Auth) |
 | Einstellungen | `/einstellungen` | App-Version und Updates |
@@ -36,6 +37,7 @@ npm ci
 npm run dev          # http://localhost:5173/   (Admin: /admin)
 npm run build        # tsc -b + Produktionsbuild
 npx eslint .
+npm test             # Tabellen-Berechnung (node --test)
 ```
 
 `.env.local` (nicht im Repo) braucht `VITE_SUPABASE_URL` und `VITE_SUPABASE_ANON_KEY` (öffentlicher Schlüssel, wie in Broadcast und Stadium).
@@ -60,9 +62,10 @@ src/
   admin/        Admin-Bereich (/admin)
   components/   gemeinsame Bausteine (ui, StatCard, TitleBar, UpdateBanner, AppVersionCard)
   layouts/      App-Rahmen (Seitenleiste)
-  lib/          Anmeldung, PWA-Updates, Titelleiste
+  lib/          Anmeldung, Competitions-Zustand, Tabellen-Berechnung, Formate, PWA-Updates, Titelleiste
   pages/        Seiten (Dashboard, Platzhalter, Team-Verzeichnis)
-  services/     Supabase-Zugriff und Realtime
-  types/        Datenmodelle (spiegeln die Datenbank)
+  services/     competitionApi.ts = einzige Stelle mit Datenbank-Tabellennamen (tournament_*); älterer Supabase-Zugriff
+  types/        competition.ts = Darstellungsmodell; models.ts spiegelt die Datenbank
+tests/          node --test (Tabellen-Berechnung)
 deploy/         Deploy-Skript, Server-Regeln (htaccess.template)
 ```
