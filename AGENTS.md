@@ -11,6 +11,11 @@ Verfahren, Stack und Deployment sind aus FlagOS Broadcast und Stadium übernomme
 - **Die Datenbank-Tabellen heißen weiter `tournament_*`**, bis die Umbenennung freigegeben und migriert ist (Konzept, Abschnitt 7). Das Studio und die iOS-App laufen gegen dieselben Tabellen – nichts umbenennen, nichts löschen, keine Spalten ändern. Typen und Services (`Tournament…`) spiegeln die Datenbank und bleiben deshalb vorerst so.
 - `app_role` nie als Competition-Recht werten; Rechte gelten pro Competition (geplant: `competition_members`).
 - Importierte, noch nicht freigegebene Spieltage (`team_events.approval_status = 'pending'`) dürfen nie öffentlich erscheinen.
+- **Sicherheit bei jedem Schritt** (Prüfung am 16.10.2026: die Rohtabellen `tournament_*` sind für `anon` pauschal lesbar, Freigabe wirkt dort nicht):
+  - Neue Tabellen/Views immer mit Row-Level-Security; kein pauschales `USING (true)` für `anon` bei Daten mit Freigabestatus.
+  - Jede Migration bekommt einen Zugriffstest (nicht angemeldet, Fremder, Team-Vertretung, Feldleitung, Turnierleitung) und ein Rollback-Skript; Vorbild `flagos-broadcast-pwa/tests/crew-access.sql`.
+  - In der PWA nie darauf verlassen, dass die Oberfläche etwas ausblendet; die Datenbank-Regeln entscheiden.
+  - Der öffentliche Schlüssel liegt in jedem Build; alles, was damit lesbar ist, ist öffentlich.
 - Keine Geheimnisse ins Repo oder in den Build (nur der Supabase-anon-Schlüssel, in `.env.local`).
 - Git-Befehle für Sven blockweise ausgeben, OHNE `#`-Kommentarzeilen.
 - Nur die eigenen Änderungen committen; fremde, nicht committete Änderungen nie mit `git add -A` einsammeln. `.claude/` gehört nicht ins Repo.
