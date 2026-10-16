@@ -14,6 +14,7 @@ Verfahren, Stack und Deployment sind aus FlagOS Broadcast und Stadium übernomme
 - **Sicherheit bei jedem Schritt** (Prüfung am 16.10.2026: die Rohtabellen `tournament_*` sind für `anon` pauschal lesbar, Freigabe wirkt dort nicht):
   - Neue Tabellen/Views immer mit Row-Level-Security; kein pauschales `USING (true)` für `anon` bei Daten mit Freigabestatus.
   - Jede Migration bekommt einen Zugriffstest (nicht angemeldet, Fremder, Team-Vertretung, Feldleitung, Turnierleitung) und ein Rollback-Skript; Vorbild `flagos-broadcast-pwa/tests/crew-access.sql`.
+  - Keine zweite Beziehung (Fremdschlüssel) zwischen Tabellen, die schon verbunden sind (`tournaments` ↔ `tournament_teams` usw.): sie macht die Einbettung `tournament_teams (*)` mehrdeutig und bricht iOS-App und Competition (Migration 050 → 050b). Der Zugriffstest prüft das.
   - In der PWA nie darauf verlassen, dass die Oberfläche etwas ausblendet; die Datenbank-Regeln entscheiden.
   - Der öffentliche Schlüssel liegt in jedem Build; alles, was damit lesbar ist, ist öffentlich.
 - Keine Geheimnisse ins Repo oder in den Build (nur der Supabase-anon-Schlüssel, in `.env.local`).
