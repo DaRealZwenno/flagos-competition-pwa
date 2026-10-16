@@ -10,7 +10,7 @@ const NAV = [
   { to: "/spielplan", label: "Spielplan", title: "Spielplan", end: false, icon: "M7 3v3m10-3v3M4 9h16M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1Zm3 8h3v3H8z" },
   { to: "/ergebnisse", label: "Ergebnisse", title: "Ergebnisse", end: false, icon: "M4 6h16v12H4zM12 6v12M7 10h2m6 0h2M7 14h2m6 0h2" },
   { to: "/tabellen", label: "Tabellen", title: "Tabellen", end: false, icon: "M4 20V11m5 9V4m5 16v-7m5 7V8" },
-  { to: "/display", label: "Display", title: "Public Display", end: false, icon: "M3 5h18v11H3zM8 20h8m-4-4v4" },
+  { to: "/display", label: "Public", title: "Public Display", end: false, icon: "M3 5h18v11H3zM8 20h8m-4-4v4" },
   { to: "/verzeichnis", label: "Verzeichnis", title: "Team-Verzeichnis", end: false, icon: "M6 3h12v18H6zM9 7h6M9 11h6M9 15h4" },
 ];
 
