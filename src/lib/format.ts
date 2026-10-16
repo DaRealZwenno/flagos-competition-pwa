@@ -20,9 +20,10 @@ export const phaseLabel: Record<GamePhase, string> = {
 export const roundOf = (g: CompetitionGame, groupName?: string) =>
   g.roundLabel || (g.phase === "group_stage" && groupName ? groupName : phaseLabel[g.phase]);
 
+/** Stand in der Anzeigereihenfolge: Gast links, Heim rechts (wie im Broadcast Studio) */
 export const scoreText = (g: CompetitionGame) =>
   g.status === "scheduled" || g.status === "cancelled" || g.homeScore == null || g.awayScore == null
-    ? "– : –" : `${g.homeScore} : ${g.awayScore}`;
+    ? "– : –" : `${g.awayScore} : ${g.homeScore}`;
 
 export function teamName(c: Competition, id?: string) {
   return (id && c.teams.find((x) => x.id === id)?.name) || "offen";

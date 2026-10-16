@@ -2,7 +2,8 @@ import { useState } from "react";
 import CompetitionPage from "../components/CompetitionPage";
 import Collapsible from "../components/Collapsible";
 import { Card, Tag, selectCls } from "../components/ui";
-import { fmtTime, gameStatusLabel, roundOf, scoreText, teamName } from "../lib/format";
+import Matchup from "../components/Matchup";
+import { fmtTime, gameStatusLabel, roundOf, scoreText } from "../lib/format";
 import type { Competition, CompetitionGame } from "../types/competition";
 
 /** Abschnitte des Spielplans: Vorrunde, K.-o.-Phase, übrige Spiele */
@@ -24,11 +25,11 @@ function GameList({ c, games }: { c: Competition; games: CompetitionGame[] }) {
         <Card key={k} title={k === "offen" ? "Zeit offen" : fmtTime(k)}>
           <ul className="divide-y divide-white/10">
             {list.map((g) => (
-              <li key={g.id} className="flex flex-wrap items-center gap-x-4 gap-y-1 py-2.5 text-sm">
+              <li key={g.id} className={`flex flex-wrap items-center gap-x-4 gap-y-1 py-2.5 text-sm ${g.status === "running" ? "-mx-2 rounded-lg bg-[#C6FF00]/5 px-2" : ""}`}>
                 <span className="w-24 flex-none text-xs text-slate-400">{fieldName(g.fieldId)}</span>
                 <span className="w-32 flex-none text-xs text-slate-400">{roundOf(g, groupName(g.groupId))}</span>
-                <span className="min-w-0 flex-1 truncate font-semibold">{teamName(c, g.homeTeamId)} <span className="font-normal text-slate-500">gegen</span> {teamName(c, g.awayTeamId)}</span>
-                <span className="font-mono text-slate-200">{scoreText(g)}</span>
+                <span className="min-w-0 flex-1 truncate font-semibold"><Matchup c={c} g={g} /></span>
+                <span className={`font-mono ${g.status === "running" ? "font-bold text-[#C6FF00]" : "text-slate-200"}`}>{scoreText(g)}</span>
                 <Tag tone={g.status === "running" ? "accent" : g.status === "finished" ? "ok" : g.status === "cancelled" ? "warn" : "muted"}>{gameStatusLabel[g.status]}</Tag>
               </li>
             ))}
@@ -77,7 +78,7 @@ function Schedule({ c }: { c: Competition }) {
 
 export default function SchedulePage() {
   return (
-    <CompetitionPage title="Spielplan" sub="Alle Spiele nach Zeit, Feld und Gruppe, gegliedert in Vorrunde und K.-o.-Phase. Aktualisiert sich selbst.">
+    <CompetitionPage title="Spielplan" sub="Alle Spiele nach Zeit, Feld und Gruppe, gegliedert in Vorrunde und K.-o.-Phase. Gast links, Heim rechts. Aktualisiert sich selbst.">
       {(c) => <Schedule c={c} />}
     </CompetitionPage>
   );

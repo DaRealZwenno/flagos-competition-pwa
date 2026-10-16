@@ -42,7 +42,7 @@ function DashboardPage() {
                 className={`flex flex-col rounded-2xl border p-6 transition ${on ? "border-[#C6FF00]/60 bg-[#C6FF00]/5" : "border-white/10 bg-[#0f1d31] hover:border-white/30"}`}
               >
                 {/* Klick wählt aus und bleibt auf dem Dashboard */}
-                <button type="button" onClick={() => selectCompetition(c.id)} aria-pressed={on} className="block w-full text-left">
+                <button type="button" onClick={() => selectCompetition(c.id)} aria-pressed={on} className="block w-full select-none text-left [-webkit-tap-highlight-color:transparent]">
                   <span className="flex items-start justify-between gap-2">
                     <span className="text-lg font-semibold">{c.name}</span>
                     <Tag tone={st === "running" ? "accent" : st === "finished" ? "ok" : "muted"}>{stateLabel[st]}</Tag>

@@ -32,12 +32,17 @@ function pickDefault(list: Competition[]): string | null {
 }
 
 let loading = false;
+let lastSignature = "";
 export async function reloadCompetitions() {
   if (loading) return;
   loading = true;
   try {
     const competitions = (await fetchCompetitions()).sort((a, b) =>
       (competitionStart(a) ?? "9999").localeCompare(competitionStart(b) ?? "9999") || a.name.localeCompare(b.name, "de"));
+    // Nichts geändert (häufig bei der 30-s-Aktualisierung): kein neuer Zustand, kein erneutes Zeichnen
+    const signature = JSON.stringify(competitions);
+    if (state.status === "ready" && !state.error && signature === lastSignature) return;
+    lastSignature = signature;
     const keep = state.selectedId && competitions.some((c) => c.id === state.selectedId) ? state.selectedId : pickDefault(competitions);
     set({ status: "ready", competitions, selectedId: keep, error: undefined, updatedAt: Date.now() });
   } catch (e) {
@@ -59,7 +64,7 @@ export function startCompetitions() {
   started = true;
   void reloadCompetitions();
   let timer: number | undefined;
-  const debounced = () => { window.clearTimeout(timer); timer = window.setTimeout(() => void reloadCompetitions(), 500); };
+  const debounced = () => { window.clearTimeout(timer); timer = window.setTimeout(() => void reloadCompetitions(), 800); };
   subscribeCompetitionChanges(debounced);
   window.setInterval(() => { if (document.visibilityState === "visible") void reloadCompetitions(); }, 30_000);
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible") void reloadCompetitions(); });
