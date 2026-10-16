@@ -8,12 +8,17 @@ sondern auch Spieltage (und später Ligen). Konzept: `20_Product/30_Features/20_
 
 ## Stand
 
-| Bereich | Route / Zugang | Stand |
+| Bereich | Route | Stand |
 | --- | --- | --- |
-| Dashboard | Startseite | Dummy-Zahlen, Stufe 1 ersetzt sie durch echte Daten |
-| Leitung, Teams, Spielplan, Ergebnisse, Tabellen, Public Display | Seitenleiste / Tab-Leiste | Platzhalter (Stufen 1–4 im Konzept) |
-| Team-Verzeichnis | Seitenleiste | nutzbar (öffentliche Liste der freigegebenen Teams) |
-| Admin (Team-Verzeichnis verwalten, Team-Importe, Registrierungsanfragen) | `#admin` | nutzbar, Login mit FlagOS-Konto (Plattform-Admin) |
+| Dashboard | `/` | Dummy-Zahlen, Stufe 1 ersetzt sie durch echte Daten |
+| Leitung, Teams, Spielplan, Ergebnisse, Tabellen, Public Display | `/leitung`, `/teams`, `/spielplan`, `/ergebnisse`, `/tabellen`, `/display` | Platzhalter (Stufen 1–4 im Konzept) |
+| Team-Verzeichnis | `/verzeichnis` | nutzbar (öffentliche Liste der freigegebenen Teams, Standardansicht Liste) |
+| Konto / Anmelden | `/konto` | Login mit FlagOS-Konto (Supabase Auth) |
+| Einstellungen | `/einstellungen` | App-Version und Updates |
+| Admin (Team-Verzeichnis verwalten, Team-Importe, Registrierungsanfragen) | `/admin` (früher `/#admin`) | nutzbar für Plattform-Admins |
+
+Aufbau und Aussehen wie Broadcast und Stadium: Icon-Seitenleiste (Logo = Startseite, Konto und Einstellungen unten), dunkelblaue Titelleiste;
+in der installierten App (Chrome/Edge, Window Controls Overlay) zeichnet die App die Titelleiste selbst, Vor/Zurück und Teilen des Browsers entfallen.
 
 Die Daten liegen im FlagOS-Supabase-Projekt. Die Tabellen heißen dort `tournament_*` (technischer Name, bleibt vorerst so); neue Tabellen bekommen das Präfix `competition_`. Ob und wann umbenannt wird, entscheidet die Bereinigung vor der Live-Schaltung (Konzept, Abschnitt 7).
 Das Broadcast Studio schreibt Spieltage und Live-Stände in dieselben Tabellen.
@@ -28,7 +33,7 @@ Das Broadcast Studio schreibt Spieltage und Live-Stände in dieselben Tabellen.
 
 ```bash
 npm ci
-npm run dev          # http://localhost:5173/   (Admin: /#admin)
+npm run dev          # http://localhost:5173/   (Admin: /admin)
 npm run build        # tsc -b + Produktionsbuild
 npx eslint .
 ```
@@ -52,11 +57,10 @@ Einrichtung (einmalig): Subdomain `competition.flagos.app` in cPanel anlegen (Do
 
 ```
 src/
-  admin/        Admin-Bereich (#admin)
-  components/   gemeinsame Bausteine (StatCard, UpdateBanner)
-  data/         Navigation
-  layouts/      App-Rahmen
-  lib/          PWA-Updates
+  admin/        Admin-Bereich (/admin)
+  components/   gemeinsame Bausteine (ui, StatCard, TitleBar, UpdateBanner, AppVersionCard)
+  layouts/      App-Rahmen (Seitenleiste)
+  lib/          Anmeldung, PWA-Updates, Titelleiste
   pages/        Seiten (Dashboard, Platzhalter, Team-Verzeichnis)
   services/     Supabase-Zugriff und Realtime
   types/        Datenmodelle (spiegeln die Datenbank)

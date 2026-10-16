@@ -23,7 +23,7 @@ Verfahren, Stack und Deployment sind aus FlagOS Broadcast und Stadium übernomme
 
 ## Technik
 - React 19 mit React-Compiler-Lint (kein manuelles useCallback, keine Ref-Zuweisung im Render, kein setState direkt im Effect), TypeScript, Vite, Tailwind v4, Supabase JS, vite-plugin-pwa.
-- Navigation heute über `activePage`-Zustand, Admin über `#admin` (Supabase-Login, `is_platform_admin()`); noch kein Router.
+- Navigation über React Router (`src/App.tsx`), Seitenleiste in `src/layouts/Layout.tsx` (Icons, Logo = Startseite, Konto/Einstellungen unten). Admin unter `/admin` (alter Einstieg `/#admin` leitet weiter; Supabase-Login, `is_platform_admin()`). Aussehen und Bausteine wie Broadcast/Stadium (`src/components/ui.tsx`).
 - Daten kommen aus FlagOS-Supabase (`.env.local`: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`). Der Service-Worker cached nur die App-Hülle, nie Daten.
 - Dev-Server-Port 5173 (5174 = Broadcast, 5175 = Stadium).
 - Lokaler Code-Ort auf Svens Mac: `~/Developer/FlagOS/flagos-competition-pwa`. GitHub: `DaRealZwenno/flagos-competition-pwa` (früher `flagos-pwa`), Branch `main` = Stand, der deployt wird.

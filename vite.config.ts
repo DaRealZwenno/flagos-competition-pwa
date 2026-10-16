@@ -48,9 +48,11 @@ export default defineConfig({
         start_url: "/",
         scope: "/",
         display: "standalone",
+        // Eigene Titelleiste (Titel mittig, ohne Vor/Zurück und Teilen); Browser ohne Unterstützung nehmen „standalone“
+        display_override: ["window-controls-overlay", "standalone"],
         orientation: "any",
         background_color: "#06111F",
-        theme_color: "#C6FF00",
+        theme_color: "#06111F",
         icons: [
           { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
           { src: "/icons/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },

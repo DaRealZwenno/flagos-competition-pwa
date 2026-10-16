@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../services/supabaseClient";
 import type { DirectoryTeam } from "../admin/adminTypes";
+import { PageTitle } from "../components/ui";
 
 type ViewMode = "grid" | "list";
 
@@ -113,7 +114,7 @@ function TeamDirectoryPublicPage() {
   const [filterState, setFilterState] = useState("");
   const [filterAge, setFilterAge] = useState("");
   const [filterGender, setFilterGender] = useState("");
-  const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [viewMode, setViewMode] = useState<ViewMode>("list");
 
   useEffect(() => {
     let cancelled = false;
@@ -130,6 +131,7 @@ function TeamDirectoryPublicPage() {
     return () => { cancelled = true; };
   }, []);
 
+  const hasFilter = !!(search || filterState || filterAge || filterGender);
   const states = Array.from(new Set(teams.map(t => t.state).filter(Boolean))).sort();
 
   const filtered = teams.filter(t => {
@@ -145,30 +147,16 @@ function TeamDirectoryPublicPage() {
   });
 
   return (
-    <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-2xl shadow-black/20 sm:p-8">
+    <div>
       {/* Header */}
       <div className="mb-6 flex items-start justify-between gap-4">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[#C6FF00]">
-            Team-Verzeichnis
-          </p>
-          <h2 className="mt-2 text-2xl font-black sm:text-4xl">
-            Flag Football Teams in Deutschland.
-          </h2>
-          <p className="mt-2 text-slate-300">
-            {loading ? "Lädt…" : `${teams.length} Teams · ${filtered.length} angezeigt`}
-          </p>
-        </div>
+        <PageTitle
+          title="Team-Verzeichnis"
+          sub={loading ? "Lädt…" : `Flag Football Teams in Deutschland · ${teams.length} Teams · ${filtered.length} angezeigt`}
+        />
 
-        {/* View Toggle */}
+        {/* Ansicht: Liste (Standard), Kacheln */}
         <div className="flex flex-shrink-0 items-center gap-1 rounded-xl border border-white/10 bg-white/5 p-1">
-          <button
-            onClick={() => setViewMode("grid")}
-            title="Kacheln"
-            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${viewMode === "grid" ? "bg-[#C6FF00] text-[#06111f]" : "text-slate-400 hover:text-slate-100"}`}
-          >
-            ⊞ Kacheln
-          </button>
           <button
             onClick={() => setViewMode("list")}
             title="Liste"
@@ -176,48 +164,58 @@ function TeamDirectoryPublicPage() {
           >
             ☰ Liste
           </button>
+          <button
+            onClick={() => setViewMode("grid")}
+            title="Kacheln"
+            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${viewMode === "grid" ? "bg-[#C6FF00] text-[#06111f]" : "text-slate-400 hover:text-slate-100"}`}
+          >
+            ⊞ Kacheln
+          </button>
         </div>
       </div>
 
-      {/* Filter-Bar */}
-      <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+      {/* Filter-Bar: Suche über die ganze Breite, darunter die Filter; der Zurücksetzen-Platz bleibt immer reserviert */}
+      <div className="mb-6 flex flex-col gap-3">
         <input
           type="search"
           placeholder="Team, Code oder Stadt suchen…"
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="flex-1 min-w-48 rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-[#C6FF00]/50 focus:outline-none"
+          className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-[#C6FF00]/50 focus:outline-none"
         />
-        <select
-          value={filterState}
-          onChange={e => setFilterState(e.target.value)}
-          className="rounded-xl border border-white/10 bg-[#06111f] px-4 py-2.5 text-sm text-slate-100 focus:border-[#C6FF00]/50 focus:outline-none"
-        >
-          <option value="">Alle Bundesländer</option>
-          {states.map(s => <option key={s} value={s}>{s}</option>)}
-        </select>
-        <select
-          value={filterAge}
-          onChange={e => setFilterAge(e.target.value)}
-          className="rounded-xl border border-white/10 bg-[#06111f] px-4 py-2.5 text-sm text-slate-100 focus:border-[#C6FF00]/50 focus:outline-none"
-        >
-          {AGE_GROUPS.map(g => <option key={g.value} value={g.value}>{g.label}</option>)}
-        </select>
-        <select
-          value={filterGender}
-          onChange={e => setFilterGender(e.target.value)}
-          className="rounded-xl border border-white/10 bg-[#06111f] px-4 py-2.5 text-sm text-slate-100 focus:border-[#C6FF00]/50 focus:outline-none"
-        >
-          {GENDER_CATEGORIES.map(g => <option key={g.value} value={g.value}>{g.label}</option>)}
-        </select>
-        {(search || filterState || filterAge || filterGender) && (
+        <div className="flex flex-wrap items-center gap-3">
+          <select
+            value={filterState}
+            onChange={e => setFilterState(e.target.value)}
+            className="rounded-xl border border-white/10 bg-[#06111f] px-4 py-2.5 text-sm text-slate-100 focus:border-[#C6FF00]/50 focus:outline-none"
+          >
+            <option value="">Alle Bundesländer</option>
+            {states.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+          <select
+            value={filterAge}
+            onChange={e => setFilterAge(e.target.value)}
+            className="rounded-xl border border-white/10 bg-[#06111f] px-4 py-2.5 text-sm text-slate-100 focus:border-[#C6FF00]/50 focus:outline-none"
+          >
+            {AGE_GROUPS.map(g => <option key={g.value} value={g.value}>{g.label}</option>)}
+          </select>
+          <select
+            value={filterGender}
+            onChange={e => setFilterGender(e.target.value)}
+            className="rounded-xl border border-white/10 bg-[#06111f] px-4 py-2.5 text-sm text-slate-100 focus:border-[#C6FF00]/50 focus:outline-none"
+          >
+            {GENDER_CATEGORIES.map(g => <option key={g.value} value={g.value}>{g.label}</option>)}
+          </select>
           <button
             onClick={() => { setSearch(""); setFilterState(""); setFilterAge(""); setFilterGender(""); }}
-            className="rounded-xl border border-white/10 px-4 py-2.5 text-sm text-slate-400 hover:text-slate-100 transition"
+            disabled={!hasFilter}
+            tabIndex={hasFilter ? 0 : -1}
+            aria-hidden={!hasFilter}
+            className={`rounded-xl border border-white/10 px-4 py-2.5 text-sm text-slate-400 transition hover:text-slate-100 ${hasFilter ? "" : "invisible"}`}
           >
             Filter zurücksetzen
           </button>
-        )}
+        </div>
       </div>
 
       {/* Team Grid */}

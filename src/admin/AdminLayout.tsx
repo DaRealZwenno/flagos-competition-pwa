@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router'
 import { supabase } from '../services/supabaseClient'
 import './adminTheme.css'
 
@@ -41,6 +42,10 @@ export default function AdminLayout({ children, activePage, onNavigate }: Props)
           <div className="mb-1 text-xs font-semibold uppercase tracking-[0.25em] text-[#C6FF00]">FlagOS</div>
           <div className="text-lg font-black">Admin-Panel</div>
         </div>
+
+        <Link to="/" className="mb-6 rounded-xl px-3 py-2 text-xs font-medium text-slate-400 transition hover:bg-white/5 hover:text-slate-100">
+          ← Zur App
+        </Link>
 
         <nav className="flex flex-1 flex-col gap-2">
           {nav.map(item => (

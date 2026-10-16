@@ -1,4 +1,5 @@
 import StatCard from "../components/StatCard";
+import { Card, PageTitle, Tag } from "../components/ui";
 
 const competitionStats = [
   { label: "Teams", value: "8" },
@@ -9,21 +10,11 @@ const competitionStats = [
 
 function DashboardPage() {
   return (
-    <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-2xl shadow-black/20 sm:p-8">
-      <div className="mb-8">
-        <p className="text-sm font-semibold uppercase tracking-[0.25em] text-[#C6FF00]">
-          Dashboard
-        </p>
-
-        <h2 className="mt-3 text-2xl font-black sm:text-4xl">
-          Status auf einen Blick.
-        </h2>
-
-        <p className="mt-3 max-w-2xl text-slate-300">
-          Grundlage für Spielplan, Ergebniserfassung, Tabellen und öffentliche
-          Anzeigen, für Turnier und Spieltag. Aktuell noch mit lokalen Dummy-Daten.
-        </p>
-      </div>
+    <>
+      <PageTitle
+        title="Dashboard"
+        sub="Status auf einen Blick, für Turnier und Spieltag. Grundlage für Spielplan, Ergebniserfassung, Tabellen und öffentliche Anzeigen. Aktuell noch mit lokalen Dummy-Daten."
+      />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {competitionStats.map((item) => (
@@ -31,16 +22,13 @@ function DashboardPage() {
         ))}
       </div>
 
-      <div className="mt-8 rounded-2xl border border-[#C6FF00]/20 bg-[#C6FF00]/10 p-5">
-        <p className="text-sm font-bold uppercase tracking-[0.2em] text-[#C6FF00]">
-          MVP-Fokus
+      <Card className="mt-6" title="MVP-Fokus" actions={<Tag tone="accent">Stufe 1</Tag>}>
+        <p className="text-sm text-slate-300">
+          Als Nächstes zeigt Competition echte Daten: Competitions, Spielplan, Ergebnisse und Tabellen
+          (zunächst nur lesen), ersetzt die Dummy-Zahlen und aktualisiert sich live.
         </p>
-        <p className="mt-2 text-slate-100">
-          Erst stabile Struktur, dann Navigation, danach Dummy-Daten für Teams,
-          Gruppen, Spielplan und Tabellen.
-        </p>
-      </div>
-    </div>
+      </Card>
+    </>
   );
 }
 
