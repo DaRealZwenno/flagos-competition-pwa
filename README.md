@@ -4,7 +4,7 @@ PWA für **Turnier und Spieltag** im Flag Football – Spielplan, Ergebnisse, Ta
 Zieladresse: **https://competition.flagos.app** (passwortgeschützte Testphase, gleiche Zugänge wie Broadcast und Stadium).
 
 Vorher hieß das Projekt „Tournament Control“ (`flagos-pwa`, pwa.flagos.app). „Competition“ ist der Oberbegriff, weil es nicht nur Turniere gibt,
-sondern auch Spieltage (und später Ligen). Konzept: `20_Product/30_Features/20_Competition/FlagOS_Competition_Concept_V0.1_Draft.md` im Projektordner FlagOS.
+sondern auch Spieltage (und später Ligen). Konzept: `20_Product/30_Features/20_Competition/FlagOS_Competition_Concept_V0.2_Draft.md` im Projektordner FlagOS.
 
 ## Stand
 

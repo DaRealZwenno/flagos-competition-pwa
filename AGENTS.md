@@ -2,7 +2,7 @@
 
 Du arbeitest an FlagOS Competition (PWA, Ziel https://competition.flagos.app, passwortgeschützte Testphase) –
 der Oberfläche für Turnier und Spieltag (Spielplan, Ergebnisse, Tabellen, Public Display).
-Vorher hieß das Projekt „Tournament Control“ (`flagos-pwa`). Konzept: `FlagOS/20_Product/30_Features/20_Competition/FlagOS_Competition_Concept_V0.1_Draft.md`.
+Vorher hieß das Projekt „Tournament Control“ (`flagos-pwa`). Konzept: `FlagOS/20_Product/30_Features/20_Competition/FlagOS_Competition_Concept_V0.2_Draft.md`.
 Antworte auf Deutsch. Produkt-Owner ist Sven; er führt Git-Merges und Deploys selbst aus.
 Verfahren, Stack und Deployment sind aus FlagOS Broadcast und Stadium übernommen (`~/Developer/FlagOS/flagos-broadcast-pwa`, `…/flagos-stadium-pwa`).
 
@@ -20,6 +20,7 @@ Verfahren, Stack und Deployment sind aus FlagOS Broadcast und Stadium übernomme
 - Git-Befehle für Sven blockweise ausgeben, OHNE `#`-Kommentarzeilen.
 - Nur die eigenen Änderungen committen; fremde, nicht committete Änderungen nie mit `git add -A` einsammeln. `.claude/` gehört nicht ins Repo.
 - Unterscheide bestätigte Entscheidungen und Vorschläge (Konzept, Abschnitt 9).
+- Tests: `50_Testing/10_Test_Plans/2026-10-16-FlagOS_Competition_Testplan.md` (im Projektordner FlagOS). Bei jeder Datenbankänderung zählt Abschnitt 3.10 (Broadcast Studio und iOS-App bleiben unverändert nutzbar).
 
 ## Technik
 - React 19 mit React-Compiler-Lint (kein manuelles useCallback, keine Ref-Zuweisung im Render, kein setState direkt im Effect), TypeScript, Vite, Tailwind v4, Supabase JS, vite-plugin-pwa.
