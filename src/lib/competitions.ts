@@ -36,7 +36,8 @@ export async function reloadCompetitions() {
   if (loading) return;
   loading = true;
   try {
-    const competitions = await fetchCompetitions();
+    const competitions = (await fetchCompetitions()).sort((a, b) =>
+      (competitionStart(a) ?? "9999").localeCompare(competitionStart(b) ?? "9999") || a.name.localeCompare(b.name, "de"));
     const keep = state.selectedId && competitions.some((c) => c.id === state.selectedId) ? state.selectedId : pickDefault(competitions);
     set({ status: "ready", competitions, selectedId: keep, error: undefined, updatedAt: Date.now() });
   } catch (e) {

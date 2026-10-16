@@ -1,5 +1,5 @@
 import CompetitionPage from "../components/CompetitionPage";
-import { Card } from "../components/ui";
+import Collapsible from "../components/Collapsible";
 import { computeStandings } from "../lib/standings";
 import type { Competition } from "../types/competition";
 
@@ -10,7 +10,7 @@ function Standings({ c }: { c: Competition }) {
     <div className="flex flex-col gap-4">
       {!anyPlayed && <p className="text-sm text-slate-400">Noch kein Spiel beendet – die Tabelle füllt sich nach den ersten Ergebnissen.</p>}
       {tables.map((t) => (
-        <Card key={t.groupId ?? "gesamt"} title={t.title}>
+        <Collapsible key={t.groupId ?? "gesamt"} title={t.title}>
           {t.rows.length === 0 ? <p className="text-sm text-slate-300">Keine Teams.</p> : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -36,7 +36,7 @@ function Standings({ c }: { c: Competition }) {
               </table>
             </div>
           )}
-        </Card>
+        </Collapsible>
       ))}
       <p className="text-xs text-slate-500">Wertung: Sieg 2, Unentschieden 1, Niederlage 0. Bei Gleichstand zählen Punktdifferenz, erzielte Punkte und Name.</p>
     </div>

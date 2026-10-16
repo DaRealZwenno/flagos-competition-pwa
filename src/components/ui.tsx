@@ -75,3 +75,7 @@ export function Dialog({ title, children, onClose, actions, wide = false }: { ti
     </div>
   );
 }
+
+/** Auswahlfeld (Dropdown) – einheitlich in Verzeichnis, Competition-Auswahl und Filtern */
+export const selectCls =
+  "rounded-xl border border-white/10 bg-[#06111f] px-4 py-2.5 text-sm text-slate-100 focus:border-[#C6FF00]/50 focus:outline-none";

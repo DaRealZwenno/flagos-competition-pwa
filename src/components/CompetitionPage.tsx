@@ -4,18 +4,18 @@ import { selectCompetition, reloadCompetitions, useCompetitions } from "../lib/c
 import type { Competition } from "../types/competition";
 import { competitionState, competitionStart } from "../services/competitionApi";
 import { fmtDate, stateLabel } from "../lib/format";
-import { Button, Card, PageTitle } from "./ui";
+import { Button, Card, PageTitle, selectCls } from "./ui";
 
 export function CompetitionPicker() {
   const { competitions, selectedId } = useCompetitions();
   if (competitions.length < 2) return null;
   return (
-    <label className="mb-5 flex flex-wrap items-center gap-3 text-xs font-semibold text-slate-400">
+    <label className="mb-5 flex flex-wrap items-center gap-3 text-sm font-semibold text-slate-300">
       Competition
       <select
         value={selectedId ?? ""}
         onChange={(e) => selectCompetition(e.target.value)}
-        className="rounded-xl border border-white/10 bg-[#06111f] px-4 py-2 text-sm text-slate-100 focus:border-[#C6FF00]/50 focus:outline-none"
+        className={`${selectCls} min-w-64`}
       >
         {competitions.map((c) => (
           <option key={c.id} value={c.id}>{c.name} · {fmtDate(competitionStart(c))} · {stateLabel[competitionState(c)]}</option>

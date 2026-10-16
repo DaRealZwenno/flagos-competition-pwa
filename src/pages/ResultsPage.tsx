@@ -31,15 +31,15 @@ function Results({ c }: { c: Competition }) {
           <ul className="divide-y divide-white/10">{running.map((g) => <GameRow key={g.id} c={c} g={g} />)}</ul>
         </Card>
       )}
-      {finished.length > 0 && (
-        <Card title="Beendet">
-          <ul className="divide-y divide-white/10">{finished.map((g) => <GameRow key={g.id} c={c} g={g} />)}</ul>
-        </Card>
-      )}
       {upcoming.length > 0 && (
         <Card title="Als Nächstes">
           <ul className="divide-y divide-white/10">{upcoming.slice(0, 8).map((g) => <GameRow key={g.id} c={c} g={g} />)}</ul>
           {upcoming.length > 8 && <p className="mt-2 text-xs text-slate-400">und {upcoming.length - 8} weitere im Spielplan</p>}
+        </Card>
+      )}
+      {finished.length > 0 && (
+        <Card title="Beendet">
+          <ul className="divide-y divide-white/10">{finished.map((g) => <GameRow key={g.id} c={c} g={g} />)}</ul>
         </Card>
       )}
     </div>

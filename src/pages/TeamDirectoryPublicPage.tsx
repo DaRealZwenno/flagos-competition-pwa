@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { supabase } from "../services/supabaseClient";
 import type { DirectoryTeam } from "../admin/adminTypes";
-import { PageTitle } from "../components/ui";
+import { PageTitle, selectCls } from "../components/ui";
+import ViewToggle, { type ViewMode } from "../components/ViewToggle";
 
-type ViewMode = "grid" | "list";
 
 const AGE_GROUPS = [
   { value: "", label: "Alle Altersklassen" },
@@ -155,23 +155,7 @@ function TeamDirectoryPublicPage() {
           sub={loading ? "Lädt…" : `Flag Football Teams in Deutschland · ${teams.length} Teams · ${filtered.length} angezeigt`}
         />
 
-        {/* Ansicht: Liste (Standard), Kacheln */}
-        <div className="flex flex-shrink-0 items-center gap-1 rounded-xl border border-white/10 bg-white/5 p-1">
-          <button
-            onClick={() => setViewMode("list")}
-            title="Liste"
-            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${viewMode === "list" ? "bg-[#C6FF00] text-[#06111f]" : "text-slate-400 hover:text-slate-100"}`}
-          >
-            ☰ Liste
-          </button>
-          <button
-            onClick={() => setViewMode("grid")}
-            title="Kacheln"
-            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${viewMode === "grid" ? "bg-[#C6FF00] text-[#06111f]" : "text-slate-400 hover:text-slate-100"}`}
-          >
-            ⊞ Kacheln
-          </button>
-        </div>
+        <ViewToggle value={viewMode} onChange={setViewMode} />
       </div>
 
       {/* Filter-Bar: Suche über die ganze Breite, darunter die Filter; der Zurücksetzen-Platz bleibt immer reserviert */}
@@ -187,7 +171,7 @@ function TeamDirectoryPublicPage() {
           <select
             value={filterState}
             onChange={e => setFilterState(e.target.value)}
-            className="rounded-xl border border-white/10 bg-[#06111f] px-4 py-2.5 text-sm text-slate-100 focus:border-[#C6FF00]/50 focus:outline-none"
+            className={selectCls}
           >
             <option value="">Alle Bundesländer</option>
             {states.map(s => <option key={s} value={s}>{s}</option>)}
@@ -195,14 +179,14 @@ function TeamDirectoryPublicPage() {
           <select
             value={filterAge}
             onChange={e => setFilterAge(e.target.value)}
-            className="rounded-xl border border-white/10 bg-[#06111f] px-4 py-2.5 text-sm text-slate-100 focus:border-[#C6FF00]/50 focus:outline-none"
+            className={selectCls}
           >
             {AGE_GROUPS.map(g => <option key={g.value} value={g.value}>{g.label}</option>)}
           </select>
           <select
             value={filterGender}
             onChange={e => setFilterGender(e.target.value)}
-            className="rounded-xl border border-white/10 bg-[#06111f] px-4 py-2.5 text-sm text-slate-100 focus:border-[#C6FF00]/50 focus:outline-none"
+            className={selectCls}
           >
             {GENDER_CATEGORIES.map(g => <option key={g.value} value={g.value}>{g.label}</option>)}
           </select>

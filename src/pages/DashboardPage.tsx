@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router";
+import { Link } from "react-router";
 import StatCard from "../components/StatCard";
 import { Card, PageTitle, Tag } from "../components/ui";
 import { reloadCompetitions, selectCompetition, useCompetitions, useSelectedCompetition } from "../lib/competitions";
@@ -9,7 +9,6 @@ import { Button } from "../components/ui";
 function DashboardPage() {
   const { status, competitions, selectedId, error } = useCompetitions();
   const selected = useSelectedCompetition();
-  const navigate = useNavigate();
   const stats = selected ? [
     { label: "Teams", value: String(selected.teams.length) },
     { label: "Gruppen", value: String(selected.groups.length) },
@@ -20,7 +19,7 @@ function DashboardPage() {
 
   return (
     <>
-      <PageTitle title="Dashboard" sub="Alle Competitions auf einen Blick: Turniere und Spieltage. Wähle eine aus, dann zeigen Spielplan, Ergebnisse und Tabellen sie an." />
+      <PageTitle title="Dashboard" sub="Alle Competitions auf einen Blick: Turniere und Spieltage. Wähle eine aus: Kennzahlen und Fortschritt darunter gelten für sie, ebenso Spielplan, Ergebnisse und Tabellen." />
 
       {status === "loading" && <p className="text-sm text-slate-400">Lädt …</p>}
       {status === "error" && (
@@ -38,18 +37,26 @@ function DashboardPage() {
             const st = competitionState(c);
             const on = c.id === selectedId;
             return (
-              <button
-                key={c.id} type="button"
-                onClick={() => { selectCompetition(c.id); navigate("/spielplan"); }}
-                className={`rounded-2xl border p-5 text-left transition ${on ? "border-[#C6FF00]/60 bg-[#C6FF00]/5" : "border-white/10 bg-[#0f1d31] hover:border-white/30"}`}
+              <div
+                key={c.id}
+                className={`flex flex-col rounded-2xl border p-6 transition ${on ? "border-[#C6FF00]/60 bg-[#C6FF00]/5" : "border-white/10 bg-[#0f1d31] hover:border-white/30"}`}
               >
-                <div className="flex items-start justify-between gap-2">
-                  <p className="font-semibold">{c.name}</p>
-                  <Tag tone={st === "running" ? "accent" : st === "finished" ? "ok" : "muted"}>{stateLabel[st]}</Tag>
-                </div>
-                <p className="mt-1 text-xs text-slate-400">{fmtDate(competitionStart(c))}</p>
-                <p className="mt-3 text-xs text-slate-400">{c.teams.length} Teams · {c.games.length} Spiele · {c.games.filter((g) => g.status === "finished").length} beendet</p>
-              </button>
+                {/* Klick wählt aus und bleibt auf dem Dashboard */}
+                <button type="button" onClick={() => selectCompetition(c.id)} aria-pressed={on} className="block w-full text-left">
+                  <span className="flex items-start justify-between gap-2">
+                    <span className="text-lg font-semibold">{c.name}</span>
+                    <Tag tone={st === "running" ? "accent" : st === "finished" ? "ok" : "muted"}>{stateLabel[st]}</Tag>
+                  </span>
+                  <span className="mt-1 block text-sm text-slate-400">{fmtDate(competitionStart(c))}</span>
+                  <span className="mt-4 block text-sm text-slate-400">{c.teams.length} Teams · {c.games.length} Spiele · {c.games.filter((g) => g.status === "finished").length} beendet</span>
+                </button>
+                <Link
+                  to="/spielplan" onClick={() => selectCompetition(c.id)}
+                  className="mt-5 inline-flex w-fit items-center rounded-lg border border-white/15 bg-white/5 px-3.5 py-2 text-sm font-semibold hover:border-white/35"
+                >
+                  Zum Spielplan →
+                </Link>
+              </div>
             );
           })}
         </div>
