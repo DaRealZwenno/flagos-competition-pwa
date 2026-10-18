@@ -5,8 +5,9 @@ import AdminLayout from "./AdminLayout";
 import TeamsPage from "./TeamsPage";
 import RequestsPage from "./RequestsPage";
 import TeamImportsPage from "./TeamImportsPage";
+import TemplatesPage from "./TemplatesPage";
 
-type AdminPage = "teams" | "requests" | "imports";
+type AdminPage = "teams" | "requests" | "imports" | "templates";
 
 /** /admin – Plattform-Admins sehen den Admin-Bereich, alle anderen den Login */
 export default function AdminRoute() {
@@ -27,6 +28,7 @@ export default function AdminRoute() {
       {adminPage === "teams"    && <TeamsPage />}
       {adminPage === "imports"  && <TeamImportsPage />}
       {adminPage === "requests" && <RequestsPage />}
+      {adminPage === "templates" && <TemplatesPage />}
     </AdminLayout>
   );
 }

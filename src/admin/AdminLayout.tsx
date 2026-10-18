@@ -3,7 +3,7 @@ import { Link } from 'react-router'
 import { supabase } from '../services/supabaseClient'
 import './adminTheme.css'
 
-type AdminPage = 'teams' | 'requests' | 'imports'
+type AdminPage = 'teams' | 'requests' | 'imports' | 'templates'
 
 type Props = {
   children: React.ReactNode
@@ -15,6 +15,7 @@ const nav: { id: AdminPage; label: string }[] = [
   { id: 'teams',    label: 'Team-Verzeichnis' },
   { id: 'imports',  label: 'Team-Importe' },
   { id: 'requests', label: 'Registrierungsanfragen' },
+  { id: 'templates', label: 'Spielplan-Vorlagen' },
 ]
 
 export default function AdminLayout({ children, activePage, onNavigate }: Props) {
