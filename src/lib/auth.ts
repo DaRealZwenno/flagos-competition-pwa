@@ -11,11 +11,12 @@ const listeners = new Set<() => void>();
 const set = (next: AuthState) => { state = next; listeners.forEach((l) => l()); };
 
 /** Sitzung und Plattform-Admin-Recht neu lesen */
-export async function refreshAuth() {
+export async function refreshAuth(): Promise<AuthState> {
   const { data: { session } } = await supabase.auth.getSession();
-  if (!session) { set({ ready: true, email: null, isAdmin: false }); return; }
+  if (!session) { set({ ready: true, email: null, isAdmin: false }); return state; }
   const { data } = await supabase.rpc("is_platform_admin");
   set({ ready: true, email: session.user.email ?? "", isAdmin: !!data });
+  return state;
 }
 
 let started = false;
