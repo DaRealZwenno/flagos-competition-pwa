@@ -37,11 +37,19 @@ export interface CompetitionGame {
   status: GameStatus;
   roundLabel?: string;
   sortOrder?: number;
+  /** Platzhalter bei K.-o.-Spielen, z. B. rank:A1 / win:HF1 (aus dem Vorlagen-Plan) */
+  homeRef?: string;
+  awayRef?: string;
+  officialsRef?: string;
+  officialsTeamId?: string;
 }
+
+export type CompetitionStatus = "draft" | "published" | "running" | "finished" | "archived";
 
 export interface Competition {
   id: string;
   name: string;
+  status: CompetitionStatus;
   teams: CompetitionTeam[];
   groups: CompetitionGroup[];
   fields: CompetitionField[];

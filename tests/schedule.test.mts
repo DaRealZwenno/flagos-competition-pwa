@@ -123,3 +123,55 @@ test("Vorlage nach Teams und Feldern finden", () => {
   assert.equal(findTemplate(7, 1), undefined);
   assert.equal(refLabel("rank:B3"), "3. Gruppe B");
 });
+
+import { buildCreatePayload } from "../src/lib/schedule/payload.ts";
+
+test("Anlege-Aufruf: Teams, Gruppen, Felder, Spiele und Platzhalter stimmen", () => {
+  let n = 0;
+  const newId = () => `00000000-0000-4000-8000-${String(++n).padStart(12, "0")}`;
+  const teams = Array.from({ length: 8 }, (_, k) => ({ id: `team-${k + 1}`, name: `Team ${k + 1}`, directoryTeamId: k === 0 ? "dir-1" : undefined }));
+  const seats = draw(T8_1, teams.map((t) => t.id), { seed: 9, hostId: "team-1", hostParticipates: true });
+  const names = Object.fromEntries(teams.map((t) => [t.id, t.name]));
+  const plan = buildPlan(T8_1, { startsAt: "2027-02-06T08:00:00.000Z", slotMinutes: 30, seats, teamNames: names });
+  const p = buildCreatePayload({
+    tournamentId: "t-1", name: "Wizard", kind: "tournament", event: { title: "Termin", date: "2027-02-06T08:00:00.000Z", location: "Neu-Ulm" },
+    template: T8_1, plan, seats, teams, hostId: "team-1", hostParticipates: true, seed: 9, newId,
+  });
+  assert.equal(p.teams.length, 8);
+  assert.equal(p.groups.length, 2);
+  assert.equal(p.fields.length, 1);
+  assert.equal(p.games.length, 18);
+  assert.equal(p.host_team_id, "team-1");
+  assert.equal(p.teams.filter((t) => t.group_id === p.groups[0].id).length, 4);   // Gruppe A hat 4 Teams
+  assert.equal(p.teams.find((t) => t.id === "team-1")!.directory_team_id, "dir-1");
+  const first = p.games[0];
+  assert.equal(first.home_team_id, "team-1");                                     // Ausrichter: erstes Spiel als Heimteam
+  const hf1 = p.games.find((g) => g.plan_game_id === "HF1")!;
+  assert.equal(hf1.home_team_id, null);
+  assert.equal(hf1.home_ref, "rank:A1");
+  assert.equal(hf1.officials_ref, "rank:B3");
+  assert.equal(hf1.group_id, null);
+  assert.equal(p.games.at(-1)!.start_date, "2027-02-06T16:30:00.000Z");
+  assert.equal(new Set(p.games.map((g) => g.id)).size, 18);
+  assert.equal(p.result_approval, false);                                         // ein Feld: ohne Freigabe
+  assert.equal(p.event_id, null);
+});
+
+test("Anlege-Aufruf: vorhandener Termin, Final Six ohne Ausrichter, zwei Felder mit Freigabe", () => {
+  let n = 0;
+  const newId = () => `10000000-0000-4000-8000-${String(++n).padStart(12, "0")}`;
+  const teams = Array.from({ length: 6 }, (_, k) => ({ id: `t${k + 1}`, name: `T${k + 1}` }));
+  const seats = draw(T6_2, teams.map((t) => t.id), { seed: 4, hostParticipates: false });
+  const plan = buildPlan(T6_2, { startsAt: "2027-02-06T10:00:00.000Z", slotMinutes: 70, seats });
+  const p = buildCreatePayload({
+    tournamentId: "t-2", name: "Final Six", kind: "tournament", eventId: "ev-1",
+    template: T6_2, plan, seats, teams, hostParticipates: false, seed: 4, newId,
+  });
+  assert.equal(p.event_id, "ev-1");
+  assert.equal(p.event, null);
+  assert.equal(p.host_team_id, null);
+  assert.equal(p.host_participates, false);
+  assert.equal(p.fields.length, 2);
+  assert.equal(p.result_approval, true);                                          // mehrere Felder: Freigabe an
+  assert.equal(new Set(p.games.map((g) => g.field_id)).size, 2);
+});

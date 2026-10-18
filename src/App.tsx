@@ -8,6 +8,7 @@ import SchedulePage from "./pages/SchedulePage";
 import ResultsPage from "./pages/ResultsPage";
 import StandingsPage from "./pages/StandingsPage";
 import TeamsPage from "./pages/TeamsPage";
+import NewCompetitionPage from "./pages/NewCompetitionPage";
 import AccountPage from "./pages/AccountPage";
 import SettingsPage from "./pages/SettingsPage";
 import AdminRoute from "./admin/AdminRoute";
@@ -54,6 +55,7 @@ export default function App() {
           <Route path="spielplan" element={<SchedulePage />} />
           <Route path="ergebnisse" element={<ResultsPage />} />
           <Route path="tabellen" element={<StandingsPage />} />
+          <Route path="neu" element={<NewCompetitionPage />} />
           <Route path="verzeichnis" element={<TeamDirectoryPublicPage />} />
           <Route path="konto" element={<AccountPage />} />
           <Route path="einstellungen" element={<SettingsPage />} />

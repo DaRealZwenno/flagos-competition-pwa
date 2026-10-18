@@ -4,18 +4,30 @@
 import { useSyncExternalStore } from "react";
 import { supabase } from "../services/supabaseClient";
 
-export type AuthState = { ready: boolean; email: string | null; isAdmin: boolean };
+export type AuthState = { ready: boolean; email: string | null; isAdmin: boolean; appRole: string | null };
 
-let state: AuthState = { ready: false, email: null, isAdmin: false };
+let state: AuthState = { ready: false, email: null, isAdmin: false, appRole: null };
 const listeners = new Set<() => void>();
 const set = (next: AuthState) => { state = next; listeners.forEach((l) => l()); };
+
+/** App-Rolle (admin, coach, …) aus dem Anmelde-Token; nur zur Anzeige – entscheiden tut immer die Datenbank */
+function appRoleOf(token: string): string | null {
+  try {
+    const payload = JSON.parse(atob(token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")));
+    return typeof payload.app_role === "string" ? payload.app_role : null;
+  } catch { return null; }
+}
+
+/** Darf (laut Anzeige) Competitions anlegen: Plattform-Admin oder App-Rolle admin/coach/tournament_director */
+export const canCreateCompetition = (s: AuthState) =>
+  s.isAdmin || ["admin", "coach", "tournament_director"].includes(s.appRole ?? "");
 
 /** Sitzung und Plattform-Admin-Recht neu lesen */
 export async function refreshAuth(): Promise<AuthState> {
   const { data: { session } } = await supabase.auth.getSession();
-  if (!session) { set({ ready: true, email: null, isAdmin: false }); return state; }
+  if (!session) { set({ ready: true, email: null, isAdmin: false, appRole: null }); return state; }
   const { data } = await supabase.rpc("is_platform_admin");
-  set({ ready: true, email: session.user.email ?? "", isAdmin: !!data });
+  set({ ready: true, email: session.user.email ?? "", isAdmin: !!data, appRole: appRoleOf(session.access_token) });
   return state;
 }
 

@@ -45,6 +45,11 @@ export default function CompetitionPage({ title, sub, children }: {
       {status === "ready" && !c && (
         <Card><p className="text-sm text-slate-300">Es gibt noch keine Competition. Sobald ein Turnier oder Spieltag angelegt und freigegeben ist, erscheint er hier.</p></Card>
       )}
+      {c && c.status === "draft" && (
+        <p className="mb-4 rounded-lg border border-[#C6FF00]/40 bg-[#C6FF00]/5 px-3 py-2 text-sm text-slate-200">
+          <b className="text-[#C6FF00]">Entwurf</b> – nur für dich und die Leitung sichtbar, bis die Competition veröffentlicht wird (Dashboard).
+        </p>
+      )}
       {c && (<><CompetitionPicker />{children(c)}</>)}
     </>
   );

@@ -12,6 +12,7 @@ sondern auch Spieltage (und später Ligen). Konzept: `20_Product/30_Features/20_
 | --- | --- | --- |
 | Dashboard | `/` | Stufe 1: alle sichtbaren Competitions als Karten, Kennzahlen und Fortschritt der gewählten Competition |
 | Spielplan, Ergebnisse, Tabellen, Teams | `/spielplan`, `/ergebnisse`, `/tabellen`, `/teams` | Stufe 1: echte Daten, nur lesen, aktualisiert sich selbst (Realtime, alle 30 s als Rückfall) |
+| Competition anlegen (Wizard) | `/neu` | Stufe 2: Termin, Vorlage, Teams, Auslosung, als Entwurf speichern; nur für Plattform-Admins und App-Rollen Admin/Coach/Turnierleiter |
 | Leitung, Public Display | `/leitung`, `/display` | Platzhalter (Stufen 3 und 4 im Konzept) |
 | Team-Verzeichnis | `/verzeichnis` | nutzbar (öffentliche Liste der freigegebenen Teams, Standardansicht Liste) |
 | Konto / Anmelden | `/konto` | Login mit FlagOS-Konto (Supabase Auth) |
