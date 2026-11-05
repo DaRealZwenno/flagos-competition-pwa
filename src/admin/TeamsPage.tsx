@@ -1,13 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../services/supabaseClient'
 import type { DirectoryClub, DirectoryTeam } from './adminTypes'
+import { useCountries } from '../lib/countries'
+import { formatTeamCode, isValidTeamCode, normalizeTeamCode, suggestTeamCode } from '../lib/teamCode'
 
 // ── Hilfsfunktionen ───────────────────────────────────────────
-
-function formatTeamCode(code: string): string {
-  if (code.length !== 8) return code
-  return `${code.slice(0, 2)}-${code.slice(2, 5)}-${code.slice(5)}`
-}
 
 function normalizeEV(name: string): string {
   return name.replace(/e\.?\s*v\./gi, 'e. V.')
@@ -16,42 +13,6 @@ function normalizeEV(name: string): string {
 function clubDisplayName(team: DirectoryTeam): string {
   const name = team.club?.legal_name || team.club?.name || ''
   return normalizeEV(name) || '–'
-}
-
-// Team-Code-Format: CC (2) + LOC (3, ICAO-Stil) + ORG (3) = 8 Zeichen
-// Beispiel: DE + NUL + SPA = DENULSPA für "Neu-Ulm Spartans Senior Flag"
-//
-// LOC: identisch zu iOS TeamInfo.generateCode() — Initialen aller Stadtteile, bei < 3 mit
-//      weiteren Buchstaben des letzten Worts auffüllen (Neu-Ulm → N+U → +L → NUL)
-//
-// ORG: letztes bedeutungsvolles Wort aus dem vollen public_name (erste 3 Buchstaben).
-//      Abweichend von iOS, weil iOS kurze Teamnamen ohne Stadtpräfix bekommt,
-//      die PWA aber den vollen Scraping-Namen ("Erding Bulls Flag") verarbeitet.
-//      Generische Suffixe werden übersprungen: FLAG, FOOTBALL, SENIOR/S, JUNIOR/S, JUGEND,
-//      LADIES, WOMEN, II, III, IV, V
-const ORG_SKIP = new Set([
-  'FLAG', 'FLAGS', 'FOOTBALL', 'TACKLE', 'SENIOR', 'SENIORS',
-  'JUNIOR', 'JUNIORS', 'JUGEND', 'LADIES', 'WOMEN', 'II', 'III', 'IV', 'V',
-])
-
-function suggestTeamCode(country: string, city: string, publicName: string): string {
-  const cc = country.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 2)
-
-  // LOC: ICAO-Stil
-  const parts = city.toUpperCase().split(/[^A-Z]/).filter(Boolean)
-  let loc = parts.map(p => p[0] ?? '').join('')
-  if (loc.length < 3 && parts.length > 0) {
-    const last = parts[parts.length - 1]
-    loc += last.slice(1, 1 + (3 - loc.length))
-  }
-  loc = loc.slice(0, 3)
-
-  // ORG: letztes bedeutungsvolles Wort
-  const words = publicName.trim().split(/\s+/).filter(Boolean)
-  const meaningful = [...words].reverse().find(w => !ORG_SKIP.has(w.toUpperCase())) ?? words[0] ?? ''
-  const org = meaningful.replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 3)
-
-  return (cc + loc + org).padEnd(8, 'X').slice(0, 8)
 }
 
 // ── Labels ────────────────────────────────────────────────────
@@ -130,6 +91,7 @@ const EMPTY_FORM: TeamForm = {
 // ── Komponente ────────────────────────────────────────────────
 
 export default function TeamsPage() {
+  const { countries, iocOf } = useCountries()
   const [teams, setTeams] = useState<DirectoryTeam[]>([])
   const [clubs, setClubs] = useState<DirectoryClub[]>([])
   const [loading, setLoading] = useState(true)
@@ -216,8 +178,8 @@ export default function TeamsPage() {
       const next = { ...prev, ...patch }
       const isNew = !editing?.id
       if (isNew && (patch.city || patch.public_name || patch.country)) {
-        const suggested = suggestTeamCode(next.country, next.city, next.public_name)
-        if (!prev.team_code || prev.team_code === suggestTeamCode(prev.country, prev.city, prev.public_name)) {
+        const suggested = suggestTeamCode(iocOf(next.country), next.city, next.public_name)
+        if (!prev.team_code || prev.team_code === suggestTeamCode(iocOf(prev.country), prev.city, prev.public_name)) {
           next.team_code = suggested
         }
       }
@@ -277,13 +239,14 @@ export default function TeamsPage() {
 
   async function save() {
     if (!form.club_id) { setError('Bitte einen Verein auswählen.'); return }
+    if (!isValidTeamCode(normalizeTeamCode(form.team_code))) { setError('Team-Code: 3 Buchstaben Land (IOC) + 3 Ort + 3 Team, z. B. GERNULSPA.'); return }
     setSaving(true); setError(null)
     const isNew = !editing?.id
     const payload = {
       club_id: form.club_id,
       public_name: form.public_name,
       short_name: form.short_name,
-      team_code: form.team_code.toUpperCase().replace(/[-\s]/g, ''),
+      team_code: normalizeTeamCode(form.team_code),
       city: form.city, state: form.state, country: form.country,
       league: form.league, association: form.association,
       logo_url: form.logo_url || null,
@@ -349,7 +312,7 @@ export default function TeamsPage() {
           {availableStates.map(s => <option key={s} value={s}>{s}</option>)}
         </FilterSelect>
         <FilterSelect value={filterCountry} onChange={setFilterCountry} placeholder="Land">
-          {availableCountries.map(c => <option key={c} value={c}>{c}</option>)}
+          {availableCountries.map(c => <option key={c} value={c}>{iocOf(c)}</option>)}
         </FilterSelect>
         <FilterSelect value={filterLeague}  onChange={setFilterLeague}  placeholder="Liga">
           {availableLeagues.map(l => <option key={l} value={l}>{l}</option>)}
@@ -404,7 +367,7 @@ export default function TeamsPage() {
                   <td className="px-4 py-3 text-xs text-slate-400 whitespace-nowrap">{clubDisplayName(team)}</td>
                   <td className="px-4 py-3 text-slate-300 whitespace-nowrap">{team.city || '–'}</td>
                   <td className="px-4 py-3 text-slate-300 whitespace-nowrap">{team.state || '–'}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-slate-400">{team.country}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-slate-400">{iocOf(team.country)}</td>
                   <td className="px-4 py-3 text-xs text-slate-400">{team.league || '–'}</td>
                   <td className="px-4 py-3 text-center text-sm">{FLAGOS_LABELS[team.flagos_status]}</td>
                   <td className="px-4 py-3 text-center text-sm">{VERIFIED_LABELS[team.verification_status]}</td>
@@ -462,8 +425,8 @@ export default function TeamsPage() {
                 <label className="mb-1 block text-xs font-medium text-slate-400">
                   Team-Code {!editing.id && <span className="text-slate-500">(wird vorgeschlagen)</span>}
                 </label>
-                <input type="text" value={form.team_code} onChange={e => setForm(f => ({ ...f, team_code: e.target.value }))} placeholder="DENULSPA" className={`${input} font-mono uppercase`} maxLength={8} />
-                {form.team_code.length === 8 && <p className="mt-1 text-xs text-slate-500">→ {formatTeamCode(form.team_code)}</p>}
+                <input type="text" value={form.team_code} onChange={e => setForm(f => ({ ...f, team_code: normalizeTeamCode(e.target.value) }))} placeholder="GERNULSPA" className={`${input} font-mono uppercase`} maxLength={9} />
+                {form.team_code.length === 9 && <p className="mt-1 text-xs text-slate-500">→ {formatTeamCode(form.team_code)}</p>}
               </div>
               <Field label="Kurzname" colSpan={1}>
                 <input type="text" value={form.short_name} onChange={e => setForm(f => ({ ...f, short_name: e.target.value }))} placeholder="z.B. Spartans" className={input} />
@@ -477,12 +440,7 @@ export default function TeamsPage() {
               </Field>
               <Field label="Land" colSpan={1}>
                 <select value={form.country} onChange={e => updateForm({ country: e.target.value })} className={input}>
-                  <option value="DE">Deutschland (DE)</option>
-                  <option value="AT">Österreich (AT)</option>
-                  <option value="CH">Schweiz (CH)</option>
-                  <option value="US">USA (US)</option>
-                  <option value="GB">Großbritannien (GB)</option>
-                  <option value="FR">Frankreich (FR)</option>
+                  {countries.map(c => <option key={c.iso2} value={c.iso2}>{c.name_de} ({c.ioc_code})</option>)}
                 </select>
               </Field>
 

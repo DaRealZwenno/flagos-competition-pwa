@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../services/supabaseClient'
 import type { JoinRequest } from './adminTypes'
+import { formatTeamCode } from '../lib/teamCode'
 
 const STATUS_LABEL: Record<JoinRequest['status'], string> = {
   pending: 'Offen',
@@ -89,7 +90,7 @@ export default function RequestsPage() {
               <div className="flex items-start justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-sm font-bold">{req.team_code}</span>
+                    <span className="font-mono text-sm font-bold">{formatTeamCode(req.team_code)}</span>
                     <span className={`rounded-full border px-2 py-0.5 text-xs font-medium ${STATUS_COLOR[req.status]}`}>
                       {STATUS_LABEL[req.status]}
                     </span>
