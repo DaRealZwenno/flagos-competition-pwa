@@ -3,6 +3,7 @@ import { supabase } from "../services/supabaseClient";
 import type { DirectoryTeam } from "../admin/adminTypes";
 import { PageTitle, selectCls } from "../components/ui";
 import ViewToggle, { type ViewMode } from "../components/ViewToggle";
+import { formatTeamCode } from "../lib/teamCode";
 
 
 const AGE_GROUPS = [
@@ -78,7 +79,7 @@ function TeamCard({ team, listMode = false }: { team: DirectoryTeam; listMode?: 
         {logo}
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-3 flex-wrap">
-            <p className="font-mono text-xs text-[#C6FF00] tracking-widest">{team.team_code}</p>
+            <p className="font-mono text-xs text-[#C6FF00] tracking-widest">{formatTeamCode(team.team_code)}</p>
             <h3 className="font-bold text-slate-50 truncate">{team.public_name}</h3>
             <p className="text-sm text-slate-400">{team.city}{team.state ? `, ${team.state}` : ""}</p>
           </div>
@@ -95,7 +96,7 @@ function TeamCard({ team, listMode = false }: { team: DirectoryTeam; listMode?: 
     <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 hover:border-[#C6FF00]/30 hover:bg-white/[0.07] transition">
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
-          <p className="font-mono text-xs text-[#C6FF00] tracking-widest mb-1">{team.team_code}</p>
+          <p className="font-mono text-xs text-[#C6FF00] tracking-widest mb-1">{formatTeamCode(team.team_code)}</p>
           <h3 className="font-bold text-slate-50 truncate">{team.public_name}</h3>
           <p className="text-sm text-slate-400 mt-0.5">{team.city}{team.state ? `, ${team.state}` : ""}</p>
         </div>
@@ -139,6 +140,7 @@ function TeamDirectoryPublicPage() {
     const matchSearch = !q ||
       t.public_name.toLowerCase().includes(q) ||
       t.team_code.toLowerCase().includes(q) ||
+      formatTeamCode(t.team_code).toLowerCase().includes(q) ||
       t.city.toLowerCase().includes(q);
     const matchState = !filterState || t.state === filterState;
     const matchAge = !filterAge || t.age_group === filterAge;

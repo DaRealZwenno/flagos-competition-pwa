@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '../services/supabaseClient'
 import type { DirectoryClub } from './adminTypes'
+import { useCountries } from '../lib/countries'
+import { formatTeamCode, isValidTeamCode, normalizeTeamCode, suggestTeamCode } from '../lib/teamCode'
 
 // ── Typen ─────────────────────────────────────────────────────
 
@@ -24,32 +26,6 @@ interface TeamImport {
   review_status: 'pending' | 'approved' | 'rejected'
   approved_team_id: string | null
   created_at: string
-}
-
-// Team-Code: CC (2) + LOC (3, ICAO) + ORG (3) — siehe TeamsPage.tsx für Kommentar
-const ORG_SKIP = new Set([
-  'FLAG', 'FLAGS', 'FOOTBALL', 'TACKLE', 'SENIOR', 'SENIORS',
-  'JUNIOR', 'JUNIORS', 'JUGEND', 'LADIES', 'WOMEN', 'II', 'III', 'IV', 'V',
-])
-
-function suggestTeamCode(country: string, city: string, teamName: string): string {
-  const cc = country.toUpperCase().replace(/[^A-Z]/g, '').slice(0, 2)
-  const parts = city.toUpperCase().split(/[^A-Z]/).filter(Boolean)
-  let loc = parts.map(p => p[0] ?? '').join('')
-  if (loc.length < 3 && parts.length > 0) {
-    const last = parts[parts.length - 1]
-    loc += last.slice(1, 1 + (3 - loc.length))
-  }
-  loc = loc.slice(0, 3)
-  const words = teamName.trim().split(/\s+/).filter(Boolean)
-  const meaningful = [...words].reverse().find(w => !ORG_SKIP.has(w.toUpperCase())) ?? words[0] ?? ''
-  const org = meaningful.replace(/[^A-Za-z]/g, '').toUpperCase().slice(0, 3)
-  return (cc + loc + org).padEnd(8, 'X').slice(0, 8)
-}
-
-function formatTeamCode(code: string): string {
-  if (code.length !== 8) return code
-  return `${code.slice(0, 2)}-${code.slice(2, 5)}-${code.slice(5)}`
 }
 
 function normalizeEV(name: string): string {
@@ -94,6 +70,7 @@ function guessTeamCategory(name: string): TeamCategory {
 // ── Komponente ────────────────────────────────────────────────
 
 export default function TeamImportsPage() {
+  const { iocOf } = useCountries()
   const [imports, setImports] = useState<TeamImport[]>([])
   const [clubs, setClubs] = useState<DirectoryClub[]>([])
   const [loading, setLoading] = useState(true)
@@ -176,7 +153,7 @@ export default function TeamImportsPage() {
   }), [imports])
 
   function openApprove(imp: TeamImport) {
-    const suggested = suggestTeamCode(imp.country_code, imp.city, imp.team_name)
+    const suggested = suggestTeamCode(iocOf(imp.country_code), imp.city, imp.team_name)
     setApproving(imp)
     setForm({
       club_id: '',
@@ -195,7 +172,7 @@ export default function TeamImportsPage() {
   async function confirmApprove() {
     if (!approving || !form) return
     if (!form.club_id) { setSaveError('Bitte einen Verein auswählen.'); return }
-    if (!form.team_code || form.team_code.length !== 8) { setSaveError('Team-Code muss genau 8 Zeichen haben.'); return }
+    if (!isValidTeamCode(normalizeTeamCode(form.team_code))) { setSaveError('Team-Code: 3 Buchstaben Land (IOC) + 3 Ort + 3 Team, z. B. GERNULSPA.'); return }
 
     setSaving(true); setSaveError(null)
 
@@ -206,7 +183,7 @@ export default function TeamImportsPage() {
         club_id: form.club_id,
         public_name: approving.team_name,
         short_name: form.short_name || approving.team_name.split(' ').pop() || '',
-        team_code: form.team_code.toUpperCase().replace(/[-\s]/g, ''),
+        team_code: normalizeTeamCode(form.team_code),
         city: approving.city,
         state: approving.state,
         country: approving.country_code,
@@ -343,7 +320,7 @@ export default function TeamImportsPage() {
                   <td className="px-4 py-3 font-medium">{imp.team_name}</td>
                   <td className="px-4 py-3 text-slate-300">{imp.city || <span className="text-slate-600">–</span>}</td>
                   <td className="px-4 py-3 text-xs text-slate-400">{imp.state || <span className="text-slate-600">–</span>}</td>
-                  <td className="px-4 py-3 font-mono text-xs text-slate-400">{imp.country_code}</td>
+                  <td className="px-4 py-3 font-mono text-xs text-slate-400">{iocOf(imp.country_code)}</td>
                   <td className="px-4 py-3 text-xs text-slate-400">{imp.league_raw || '–'}</td>
                   <td className="px-4 py-3 text-xs text-slate-400">{imp.variants_raw || '5er'}</td>
                   <td className="px-4 py-3 max-w-48">
@@ -442,12 +419,12 @@ export default function TeamImportsPage() {
                 <input
                   type="text"
                   value={form.team_code}
-                  onChange={e => setForm(f => f ? { ...f, team_code: e.target.value.toUpperCase().replace(/[-\s]/g, '') } : f)}
-                  maxLength={8}
+                  onChange={e => setForm(f => f ? { ...f, team_code: normalizeTeamCode(e.target.value) } : f)}
+                  maxLength={9}
                   className={`${input} font-mono uppercase`}
-                  placeholder="DENULSPA"
+                  placeholder="GERNULSPA"
                 />
-                {form.team_code.length === 8 && (
+                {form.team_code.length === 9 && (
                   <p className="mt-1 text-xs text-slate-500">→ {formatTeamCode(form.team_code)}</p>
                 )}
               </div>

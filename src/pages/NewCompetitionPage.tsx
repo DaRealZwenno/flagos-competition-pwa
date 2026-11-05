@@ -10,6 +10,7 @@ import { draw, newSeed, type SeatMap } from "../lib/schedule/draw";
 import { buildPlan, refLabel } from "../lib/schedule/plan";
 import { buildCreatePayload, type WizardTeam } from "../lib/schedule/payload";
 import { seatsOf } from "../lib/schedule/types";
+import { formatTeamCode } from "../lib/teamCode";
 import { fmtDate, fmtTime } from "../lib/format";
 
 type Step = 1 | 2 | 3 | 4;
@@ -161,7 +162,7 @@ export default function NewCompetitionPage() {
     }
   };
 
-  const shown = dir.filter((d) => (d.name + " " + d.city + " " + d.code).toLowerCase().includes(search.toLowerCase())).slice(0, 40);
+  const shown = dir.filter((d) => (d.name + " " + d.city + " " + d.code + " " + formatTeamCode(d.code)).toLowerCase().includes(search.toLowerCase())).slice(0, 40);
   const seatOrder = template ? seatsOf(template) : [];
 
   return (
