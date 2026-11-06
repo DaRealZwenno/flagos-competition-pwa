@@ -1,6 +1,6 @@
 // Darstellungsmodell der Competition-Oberfläche.
-// Die Datenbank-Tabellen heißen noch tournament_* (Konzept 7.2); die Übersetzung steckt nur in
-// src/services/competitionApi.ts. Seiten und Bausteine arbeiten nur mit diesen Typen.
+// Die Datenbank-Namen (competitions, competition_entries, games …) und die Umwandlung stecken nur in
+// src/services/competitionApi.ts und competitionMapping.ts. Seiten und Bausteine arbeiten nur mit diesen Typen.
 
 export type GameStatus = "scheduled" | "running" | "finished" | "cancelled";
 export type GamePhase = "group_stage" | "semifinal" | "placement" | "final" | "other";

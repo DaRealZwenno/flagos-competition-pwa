@@ -8,13 +8,13 @@ Verfahren, Stack und Deployment sind aus FlagOS Broadcast und Stadium übernomme
 
 ## Feste Regeln
 - Nichts ohne Rückfrage auf Live-Systeme anwenden (Supabase-Migrationen, Daten, Einstellungen, Server).
-- **Namensgebung (entschieden 16.10.2026, Konzept Abschnitt 7.2):** Die bestehenden Tabellen, Typen und die View heißen weiter `tournament_*` (technischer Name), das Produkt heißt Competition. **Neue Tabellen und Funktionen bekommen das Präfix `competition_`**, neue Spalten an bestehenden Tabellen normale Namen. Nichts umbenennen, nichts löschen: Broadcast Studio (live), iOS-App und diese PWA hängen an den Namen. Das „Gerade ziehen“ passiert erst vor der Live-Schaltung (Konzept 7.3); bis dahin Fundstücke in die Sammelliste am Ende des Konzepts eintragen. Typen und Services (`Tournament…`) spiegeln die Datenbank und bleiben deshalb so; Tabellennamen nur in der Zugriffsschicht `src/services/competitionApi.ts` verwenden, nicht in Seiten; die Seiten arbeiten mit `src/types/competition.ts`.
-- `app_role` nie als Competition-Recht werten; Rechte gelten pro Competition (geplant: `competition_members`).
-- Importierte, noch nicht freigegebene Spieltage (`team_events.approval_status = 'pending'`) dürfen nie öffentlich erscheinen.
-- **Sicherheit bei jedem Schritt** (Prüfung am 16.10.2026: die Rohtabellen `tournament_*` sind für `anon` pauschal lesbar, Freigabe wirkt dort nicht):
+- **Namen (seit der Umstellung auf die neue Datenbankstruktur, Welle 4):** Die Tabellen heißen `competitions`, `competition_entries` (Teilnehmer), `competition_groups`, `competition_group_entries`, `competition_fields` und `games`; Termine liegen in `events`. Die alten `tournament_*`-Tabellen gibt es nicht mehr; Archivtabellen mit Vorsatz `zz_alt_` nie benutzen. Tabellen- und Funktionsnamen nur in der Zugriffsschicht verwenden (`src/services/competitionApi.ts` für Turniere, `src/services/directoryApi.ts` für das Teamverzeichnis), nicht in Seiten; die Seiten arbeiten mit den Darstellungs-Typen in `src/types/`. Umwandlung Datenbank → Typen steckt in `competitionMapping.ts` und `directoryMapping.ts` (reine Funktionen, getestet).
+- **Rechte:** `app_role` (Anmelde-Token) nie als Recht werten, nur zur Anzeige. Rechte kommen aus Rollen mit Geltungsbereich (Team, Veranstaltung, Turnier, Plattform) in der Datenbank. Die Oberfläche zeigt Wege für alle Angemeldeten; ob jemand darf, entscheidet allein die Datenbank (Fehler wie `competition_forbidden` verständlich anzeigen).
+- Entwürfe und nicht freigegebene Turniere und Termine dürfen nie öffentlich erscheinen.
+- **Sicherheit bei jedem Schritt** (Besucher ohne Anmeldung lesen **keine** Tabellen, nur die öffentlichen Funktionen `competition_public_info`, `competition_public_entries`, `competition_public_games` und `directory_public_teams`; eingeloggte Konten lesen Tabellen nur, soweit der Zeilenschutz es erlaubt):
   - Neue Tabellen/Views immer mit Row-Level-Security; kein pauschales `USING (true)` für `anon` bei Daten mit Freigabestatus.
   - Jede Migration bekommt einen Zugriffstest (nicht angemeldet, Fremder, Team-Vertretung, Feldleitung, Turnierleitung) und ein Rollback-Skript; Vorbild `flagos-broadcast-pwa/tests/crew-access.sql`.
-  - Keine zweite Beziehung (Fremdschlüssel) zwischen Tabellen, die schon verbunden sind (`tournaments` ↔ `tournament_teams` usw.): sie macht die Einbettung `tournament_teams (*)` mehrdeutig und bricht iOS-App und Competition (Migration 050 → 050b). Der Zugriffstest prüft das.
+  - Keine zweite Beziehung (Fremdschlüssel) zwischen Tabellen, die schon verbunden sind (`competitions` ↔ `competition_entries` usw.): sie macht die Einbettung `competition_entries (*)` mehrdeutig und bricht die Abfragen. Der Zugriffstest im Backend-Repo prüft das.
   - In der PWA nie darauf verlassen, dass die Oberfläche etwas ausblendet; die Datenbank-Regeln entscheiden.
   - Der öffentliche Schlüssel liegt in jedem Build; alles, was damit lesbar ist, ist öffentlich.
 - Keine Geheimnisse ins Repo oder in den Build (nur der Supabase-anon-Schlüssel, in `.env.local`).
@@ -25,7 +25,7 @@ Verfahren, Stack und Deployment sind aus FlagOS Broadcast und Stadium übernomme
 
 ## Technik
 - React 19 mit React-Compiler-Lint (kein manuelles useCallback, keine Ref-Zuweisung im Render, kein setState direkt im Effect), TypeScript, Vite, Tailwind v4, Supabase JS, vite-plugin-pwa.
-- Navigation über React Router (`src/App.tsx`), Seitenleiste in `src/layouts/Layout.tsx` (Icons, Logo = Startseite, Konto/Einstellungen unten). Admin unter `/admin` (alter Einstieg `/#admin` leitet weiter; Supabase-Login, `is_platform_admin()`). Aussehen und Bausteine wie Broadcast/Stadium (`src/components/ui.tsx`).
+- Navigation über React Router (`src/App.tsx`), Seitenleiste in `src/layouts/Layout.tsx` (Icons, Logo = Startseite, Konto/Einstellungen unten). Verwaltung (Teams, Importe, Anfragen, Spielplan-Vorlagen ansehen) liegt in der eigenen Admin-PWA; hier führen `/admin` und der alte Einstieg `/#admin` nur dorthin weiter (`src/lib/links.ts`), und Plattform-Admins sehen einen Link. Aussehen und Bausteine wie Broadcast/Stadium (`src/components/ui.tsx`).
 - Daten kommen aus FlagOS-Supabase (`.env.local`: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`). Der Service-Worker cached nur die App-Hülle, nie Daten.
 - Dev-Server-Port 5173 (5174 = Broadcast, 5175 = Stadium).
 - Lokaler Code-Ort auf Svens Mac: `~/Developer/FlagOS/flagos-competition-pwa`. GitHub: `DaRealZwenno/flagos-competition-pwa` (früher `flagos-pwa`), Branch `main` = Stand, der deployt wird.
@@ -77,4 +77,4 @@ Dieses Repo ist **öffentlich**: keine Projekt-Kennungen, Schlüssel, internen P
 - **Lokal gegen die Probebühne:** `npm run dev` liest `.env.development.local` (Probebühne), der Produktions-Build liest `.env.local` (Live). Beide Dateien nicht im Repo; nur der öffentliche anon-Schlüssel gehört in den Build.
 - **Migrationen nur im Backend-Repo** (Zeitstempel-Namen, je Migration Rollback und Zugriffstest). Hier keine eigenen Migrationen.
 - **Aufräumen vor neuen Funktionen:** keine neuen Tabellen mit eigenem Team-, Personen- oder Mitgliederkonzept; neue Fachtabellen bauen auf der gemeinsamen Kernstruktur (Teams, Personen, Rechte, Wettbewerbe) auf.
-- **Neue Namen kommen** (u. a. `tournament*` → `competition*`): neuen Code nicht unnötig auf die alten Namen bauen.
+- **Umbenennung erledigt** (`tournament*` → `competition*`, Verzeichnis → `teams`/`organizations`): neuer Code nutzt nur die neuen Namen und die öffentlichen Funktionen.

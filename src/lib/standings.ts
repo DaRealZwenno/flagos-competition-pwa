@@ -1,7 +1,7 @@
 // Tabellen aus den Spielen berechnen – Voreinstellung „FlagOS-Standard“ (Konzept, Abschnitt 5):
 // Sieg 2, Unentschieden 1, Niederlage 0; bei Gleichstand Punktdifferenz, erzielte Punkte, Name.
-// Gleiche Regeln wie die View tournament_standings und die iOS-App. Die View ist für Fremde nicht
-// lesbar, deshalb rechnet die Oberfläche selbst. Gezählt werden beendete Spiele mit Ergebnis.
+// Gleiche Regeln wie die View competition_standings und die iOS-App. Die View ist für niemanden lesbar
+// (gewollt), deshalb rechnet die Oberfläche selbst. Gezählt werden beendete Spiele mit Ergebnis.
 import type { Competition, CompetitionGame, StandingRow, StandingTable } from "../types/competition";
 
 export const RULES = { win: 2, draw: 1, loss: 0 } as const;

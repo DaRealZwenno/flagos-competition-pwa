@@ -12,18 +12,19 @@ sondern auch Spieltage (und später Ligen). Konzept: `20_Product/30_Features/20_
 | --- | --- | --- |
 | Dashboard | `/` | Stufe 1: alle sichtbaren Competitions als Karten, Kennzahlen und Fortschritt der gewählten Competition |
 | Spielplan, Ergebnisse, Tabellen, Teams | `/spielplan`, `/ergebnisse`, `/tabellen`, `/teams` | Stufe 1: echte Daten, nur lesen, aktualisiert sich selbst (Realtime, alle 30 s als Rückfall) |
-| Competition anlegen (Wizard) | `/neu` | Stufe 2: Termin, Vorlage, Teams, Auslosung, als Entwurf speichern; nur für Plattform-Admins und App-Rollen Admin/Coach/Turnierleiter |
+| Competition anlegen (Wizard) | `/neu` | Stufe 2: Termin, Vorlage, Teams, Auslosung, als Entwurf speichern; Weg für alle Angemeldeten, gespeichert wird nur mit dem Recht „Termine verwalten“ im Gastgeber-Team oder der Verwaltung der Veranstaltung (die Datenbank entscheidet) |
 | Leitung, Public Display | `/leitung`, `/display` | Platzhalter (Stufen 3 und 4 im Konzept) |
-| Team-Verzeichnis | `/verzeichnis` | nutzbar (öffentliche Liste der freigegebenen Teams, Standardansicht Liste) |
+| Team-Verzeichnis | `/verzeichnis` | nutzbar (öffentliche Liste der freigegebenen Teams über `directory_public_teams()`, Standardansicht Liste) |
 | Konto / Anmelden | `/konto` | Login mit FlagOS-Konto (Supabase Auth) |
 | Einstellungen | `/einstellungen` | App-Version und Updates |
-| Admin (Team-Verzeichnis verwalten, Team-Importe, Registrierungsanfragen) | `/admin` (früher `/#admin`) | nutzbar für Plattform-Admins |
+| Admin (Team-Verzeichnis verwalten, Team-Importe, Anfragen) | `/admin` (früher `/#admin`) | umgezogen in die Admin-PWA; hier nur Weiterleitung und Link für Plattform-Admins |
 
 Aufbau und Aussehen wie Broadcast und Stadium: Icon-Seitenleiste (Logo = Startseite, Konto und Einstellungen unten), dunkelblaue Titelleiste;
 in der installierten App (Chrome/Edge, Window Controls Overlay) zeichnet die App die Titelleiste selbst, Vor/Zurück und Teilen des Browsers entfallen.
 
-Die Daten liegen im FlagOS-Supabase-Projekt. Die Tabellen heißen dort `tournament_*` (technischer Name, bleibt vorerst so); neue Tabellen bekommen das Präfix `competition_`. Ob und wann umbenannt wird, entscheidet die Bereinigung vor der Live-Schaltung (Konzept, Abschnitt 7).
-Das Broadcast Studio schreibt Spieltage und Live-Stände in dieselben Tabellen.
+Die Daten liegen im FlagOS-Supabase-Projekt. Die Tabellen heißen `competitions`, `competition_entries`, `competition_groups`, `competition_fields` und `games`, Termine liegen in `events`.
+Besucher ohne Anmeldung lesen nur über die öffentlichen Funktionen (`competition_public_*`, `directory_public_teams`), Angemeldete zusätzlich aus den Tabellen (Zeilenschutz). Die Seite lädt alle 30 Sekunden nach; Realtime gilt nur für Angemeldete.
+Das Broadcast Studio schreibt Live-Stände in dieselben Tabellen.
 
 ## Tech-Stack
 
@@ -35,10 +36,10 @@ Das Broadcast Studio schreibt Spieltage und Live-Stände in dieselben Tabellen.
 
 ```bash
 npm ci
-npm run dev          # http://localhost:5173/   (Admin: /admin)
+npm run dev          # http://localhost:5173/   (gegen die Probebühne)
 npm run build        # tsc -b + Produktionsbuild
 npx eslint .
-npm test             # Tabellen-Berechnung (node --test)
+npm test             # Spielplan, Tabellen, Teamcode, Umwandlungen (node --test)
 ```
 
 `.env.local` (nicht im Repo) braucht `VITE_SUPABASE_URL` und `VITE_SUPABASE_ANON_KEY` (öffentlicher Schlüssel, wie in Broadcast und Stadium).
@@ -60,13 +61,12 @@ Einrichtung (einmalig): Subdomain `competition.flagos.app` in cPanel anlegen (Do
 
 ```
 src/
-  admin/        Admin-Bereich (/admin)
   components/   gemeinsame Bausteine (ui, StatCard, TitleBar, UpdateBanner, AppVersionCard)
   layouts/      App-Rahmen (Seitenleiste)
-  lib/          Anmeldung, Competitions-Zustand, Tabellen-Berechnung, Formate, PWA-Updates, Titelleiste
+  lib/          Anmeldung, Competitions-Zustand, Tabellen-Berechnung, Spielplan (schedule), Formate, Links, PWA-Updates, Titelleiste
   pages/        Seiten (Dashboard, Platzhalter, Team-Verzeichnis)
-  services/     competitionApi.ts = einzige Stelle mit Datenbank-Tabellennamen (tournament_*); älterer Supabase-Zugriff
-  types/        competition.ts = Darstellungsmodell; models.ts spiegelt die Datenbank
-tests/          node --test (Tabellen-Berechnung)
+  services/     competitionApi.ts und directoryApi.ts = einzige Stellen mit Datenbank-Namen; *Mapping.ts = Umwandlung (reine Funktionen)
+  types/        competition.ts und directory.ts = Darstellungsmodelle
+tests/          node --test (Spielplan, Tabellen, Teamcode, Umwandlungen)
 deploy/         Deploy-Skript, Server-Regeln (htaccess.template)
 ```
