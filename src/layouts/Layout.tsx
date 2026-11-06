@@ -2,6 +2,7 @@
 import { Link, NavLink, Outlet } from "react-router";
 import { useUpdateAvailable } from "../lib/pwaUpdate";
 import { useAuth } from "../lib/auth";
+import { ADMIN_URL } from "../lib/links";
 
 const NAV = [
   { to: "/", label: "Dashboard", title: "Dashboard", end: true, icon: "M4 4h7v7H4zM13 4h7v4h-7zM13 11h7v9h-7zM4 14h7v6H4z" },
@@ -30,7 +31,6 @@ export default function Layout() {
   const { email, isAdmin } = useAuth();
   const mobileNav = [
     ...NAV.map((n) => ({ to: n.to, label: n.title, end: n.end })),
-    ...(isAdmin ? [{ to: "/admin", label: "Admin", end: false }] : []),
     { to: "/konto", label: email ? "Konto" : "Anmelden", end: false },
     { to: "/einstellungen", label: update ? "Einstellungen ●" : "Einstellungen", end: false },
   ];
@@ -48,7 +48,7 @@ export default function Layout() {
           ))}
         </nav>
         <div className="mt-auto flex flex-col gap-1 p-2">
-          {isAdmin && <NavLink to="/admin" className={link} title="Admin-Bereich"><Icon d={SHIELD} />Admin</NavLink>}
+          {isAdmin && <a href={ADMIN_URL} className={link({ isActive: false })} title="Admin-Bereich (eigene App)"><Icon d={SHIELD} />Admin</a>}
           <NavLink to="/konto" className={link} title={email ? `Konto · ${email}` : "Anmelden"}>
             {email
               ? <span className="grid h-6 w-6 place-items-center rounded-full bg-[#C6FF00] text-xs font-black text-[#06111f]">{(email[0] || "?").toUpperCase()}</span>
@@ -68,6 +68,7 @@ export default function Layout() {
             <NavLink key={n.to} to={n.to} end={n.end}
               className={({ isActive }) => `whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-semibold ${isActive ? "bg-white/10 text-[#C6FF00]" : "text-slate-300"}`}>{n.label}</NavLink>
           ))}
+          {isAdmin && <a href={ADMIN_URL} className="whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-semibold text-slate-300">Admin ↗</a>}
         </nav>
       </header>
       <main className="mx-auto max-w-6xl px-4 py-6 md:px-8 md:py-8">

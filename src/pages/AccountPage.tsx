@@ -1,7 +1,8 @@
 // /konto – Anmeldung mit dem FlagOS-Konto
 import { useState, type FormEvent } from "react";
-import { Link, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import { refreshAuth, resetPassword, signIn, signOut, useAuth } from "../lib/auth";
+import { ADMIN_URL } from "../lib/links";
 import { Button, Card, Field, PageTitle, Tag, inputCls } from "../components/ui";
 
 export default function AccountPage() {
@@ -17,10 +18,10 @@ export default function AccountPage() {
     setBusy(true); setMsg(null);
     const err = await signIn(email, password);
     if (err) { setBusy(false); setMsg({ text: err }); return; }
-    // Plattform-Admin erkennen (Datenbank: Tabelle platform_admins) und direkt in den Admin-Bereich
-    const now = await refreshAuth();
+    // Plattform-Admin-Recht neu lesen (Datenbank: Rolle platform_admin in access_grants), dann zum Dashboard
+    await refreshAuth();
     setBusy(false);
-    nav(now.isAdmin ? "/admin" : "/");
+    nav("/");
   };
   const reset = async () => {
     if (!email.trim()) { setMsg({ text: "Bitte zuerst die E-Mail-Adresse eintragen." }); return; }
@@ -32,7 +33,7 @@ export default function AccountPage() {
 
   return (
     <div className="mx-auto max-w-md">
-      <PageTitle title={userEmail ? "Dein Konto" : "Anmelden"} sub="Mit deinem FlagOS-Konto. Competition ist ohne Anmeldung nutzbar; das Konto brauchst du für den Admin-Bereich und später für Rollen in einer Competition (Turnierleitung, Feldleitung, Team-Vertretung)." />
+      <PageTitle title={userEmail ? "Dein Konto" : "Anmelden"} sub="Mit deinem FlagOS-Konto. Competition ist ohne Anmeldung nutzbar; das Konto brauchst du zum Anlegen und Verwalten von Competitions und später für Rollen in einer Competition (Turnierleitung, Feldleitung, Team-Vertretung)." />
       {ready && userEmail && (
         <Card title="Angemeldet">
           <div className="flex items-center gap-3">
@@ -42,11 +43,11 @@ export default function AccountPage() {
           </div>
           {!isAdmin && (
             <p className="mt-4 text-xs text-slate-400">
-              Den Admin-Bereich sehen nur Konten, die als Plattform-Admin eingetragen sind. Das geschieht in der Datenbank, nicht in der App.
+              Den Link zum Admin-Bereich sehen nur Konten mit der Rolle Plattform-Admin. Rollen werden in der Datenbank vergeben, nicht in dieser App.
             </p>
           )}
           <div className="mt-5 flex flex-wrap gap-2">
-            {isAdmin && <Link to="/admin" className="inline-flex items-center rounded-lg border border-white/15 bg-white/5 px-3.5 py-2 text-sm font-semibold hover:border-white/35">Admin-Bereich</Link>}
+            {isAdmin && <a href={ADMIN_URL} className="inline-flex items-center rounded-lg border border-white/15 bg-white/5 px-3.5 py-2 text-sm font-semibold hover:border-white/35">Admin-Bereich ↗</a>}
             <Button onClick={() => void signOut()}>Abmelden</Button>
           </div>
         </Card>

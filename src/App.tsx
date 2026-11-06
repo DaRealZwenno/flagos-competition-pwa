@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { BrowserRouter, Navigate, Route, Routes, useNavigate } from "react-router";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import Layout from "./layouts/Layout";
 import DashboardPage from "./pages/DashboardPage";
 import PlaceholderPage from "./pages/PlaceholderPage";
@@ -11,7 +11,7 @@ import TeamsPage from "./pages/TeamsPage";
 import NewCompetitionPage from "./pages/NewCompetitionPage";
 import AccountPage from "./pages/AccountPage";
 import SettingsPage from "./pages/SettingsPage";
-import AdminRoute from "./admin/AdminRoute";
+import { ADMIN_URL } from "./lib/links";
 import UpdateBanner from "./components/UpdateBanner";
 import TitleBar from "./components/TitleBar";
 
@@ -30,12 +30,17 @@ const modules = [
   },
 ];
 
-/** Alter Einstieg `/#admin` → `/admin` */
+/** Der Admin-Bereich ist umgezogen: alte Lesezeichen (`/admin`) und der frühere Einstieg `/#admin` führen zur Admin-PWA */
+function AdminMoved() {
+  useEffect(() => { window.location.replace(ADMIN_URL); }, []);
+  return <p className="p-6 text-sm text-slate-400">Der Admin-Bereich ist umgezogen. Weiterleitung zu <a className="underline" href={ADMIN_URL}>{ADMIN_URL.replace("https://", "")}</a> …</p>;
+}
+
+/** Alter Einstieg `/#admin` */
 function LegacyAdminHash() {
-  const navigate = useNavigate();
   useEffect(() => {
-    if (window.location.hash === "#admin") navigate("/admin", { replace: true });
-  }, [navigate]);
+    if (window.location.hash === "#admin") window.location.replace(ADMIN_URL);
+  }, []);
   return null;
 }
 
@@ -45,7 +50,7 @@ export default function App() {
       <LegacyAdminHash />
       <TitleBar />
       <Routes>
-        <Route path="admin" element={<AdminRoute />} />
+        <Route path="admin/*" element={<AdminMoved />} />
         <Route element={<Layout />}>
           <Route index element={<DashboardPage />} />
           {modules.map((m) => (
