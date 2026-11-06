@@ -18,9 +18,9 @@ function appRoleOf(token: string): string | null {
   } catch { return null; }
 }
 
-/** Darf (laut Anzeige) Competitions anlegen: Plattform-Admin oder App-Rolle admin/coach/tournament_director */
-export const canCreateCompetition = (s: AuthState) =>
-  s.isAdmin || ["admin", "coach", "tournament_director"].includes(s.appRole ?? "");
+/** Zeigt den Weg zum Anlegen: jedes angemeldete Konto. Ob es wirklich darf (Recht "Termine verwalten" im Gastgeber-Team
+ *  oder Verwaltung der Veranstaltung), entscheidet allein die Datenbank; der Assistent erklärt die Ablehnung. */
+export const canCreateCompetition = (s: AuthState) => !!s.email;
 
 /** Sitzung und Plattform-Admin-Recht neu lesen */
 export async function refreshAuth(): Promise<AuthState> {

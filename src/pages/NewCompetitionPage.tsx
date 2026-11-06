@@ -2,9 +2,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { Button, Card, Field, PageTitle, Tag, inputCls, selectCls } from "../components/ui";
-import { canCreateCompetition, useAuth } from "../lib/auth";
+import { useAuth } from "../lib/auth";
 import { reloadCompetitions, selectCompetition } from "../lib/competitions";
-import { createCompetition, fetchDirectoryTeams, fetchOpenEvents, type DirectoryTeamLite, type OpenEvent } from "../services/competitionApi";
+import { createCompetition, fetchMyHostTeams, fetchOpenEvents, type HostTeam, type OpenEvent } from "../services/competitionApi";
+import { fetchDirectoryTeams } from "../services/directoryApi";
+import type { DirectoryTeam } from "../types/directory";
 import { TEMPLATES, findTemplate } from "../lib/schedule/templates";
 import { draw, newSeed, type SeatMap } from "../lib/schedule/draw";
 import { buildPlan, refLabel } from "../lib/schedule/plan";
@@ -35,15 +37,19 @@ export default function NewCompetitionPage() {
   const [place, setPlace] = useState("");
   const [kind, setKind] = useState<"tournament" | "matchday">("tournament");
   const [name, setName] = useState("");
+  // Gastgeber-Team einer neuen Veranstaltung: null = noch nicht geladen oder Abfrage gescheitert (dann entscheidet die Datenbank beim Speichern)
+  const [hostTeams, setHostTeams] = useState<HostTeam[] | null>(null);
+  const [hostTeamId, setHostTeamId] = useState("");
 
   // 2 Format
   const [teamCount, setTeamCount] = useState(8);
   const [fields, setFields] = useState(1);
   const [slotMinutes, setSlotMinutes] = useState(30);
   const [hostParticipates, setHostParticipates] = useState(true);
+  const [publicLive, setPublicLive] = useState(true);
 
   // 3 Teams
-  const [dir, setDir] = useState<DirectoryTeamLite[]>([]);
+  const [dir, setDir] = useState<DirectoryTeam[]>([]);
   const [search, setSearch] = useState("");
   const [teams, setTeams] = useState<WizardTeam[]>([]);
   const [freeName, setFreeName] = useState("");
@@ -57,12 +63,16 @@ export default function NewCompetitionPage() {
 
   useEffect(() => {
     let cancelled = false;
-    // Termine und Verzeichnis getrennt laden: fällt eines aus, funktioniert das andere trotzdem
-    Promise.allSettled([fetchOpenEvents(), fetchDirectoryTeams()]).then(([e, d]) => {
+    // Termine, Verzeichnis und Gastgeber-Teams getrennt laden: fällt eines aus, funktioniert der Rest trotzdem
+    Promise.allSettled([fetchOpenEvents(), fetchDirectoryTeams(), fetchMyHostTeams()]).then(([e, d, h]) => {
       if (cancelled) return;
       setEvents(e.status === "fulfilled" ? e.value : []);
       if (d.status === "fulfilled") setDir(d.value);
-      const failed = [e, d].find((r) => r.status === "rejected") as PromiseRejectedResult | undefined;
+      if (h.status === "fulfilled") {
+        setHostTeams(h.value);
+        if (h.value.length === 1) setHostTeamId(h.value[0].id);   // nur ein Team: eindeutig
+      }
+      const failed = [e, d, h].find((r) => r.status === "rejected") as PromiseRejectedResult | undefined;
       if (failed) setLoadError(failed.reason instanceof Error ? failed.reason.message : "Fehler");
     });
     return () => { cancelled = true; };
@@ -91,22 +101,17 @@ export default function NewCompetitionPage() {
       </>
     );
   }
-  if (!canCreateCompetition(auth)) {
-    return (
-      <>
-        <PageTitle title="Competition anlegen" sub="Dafür fehlt dem Konto das Recht." />
-        <Card><p className="text-sm text-slate-300">Competitions legen Plattform-Admins sowie Konten mit der App-Rolle Admin, Coach oder Turnierleiter an.</p></Card>
-      </>
-    );
-  }
 
   const teamOk = teams.length === teamCount && (!hostParticipates || teams.some((t) => t.id === hostId));
-  const step1Ok = mode === "existing" ? !!chosenEvent : !!title.trim() && !!date;
+  // Neue Veranstaltung braucht ein Gastgeber-Team mit Recht "Termine verwalten". Ist die Liste geladen und leer, wäre das Speichern abgelehnt: gleich sagen.
+  const noHostTeam = mode === "new" && hostTeams !== null && hostTeams.length === 0;
+  const hostTeamMissing = mode === "new" && !!hostTeams && hostTeams.length > 1 && !hostTeamId;
+  const step1Ok = mode === "existing" ? !!chosenEvent : !!title.trim() && !!date && !noHostTeam && !hostTeamMissing;
   const canNext = step === 1 ? step1Ok : step === 2 ? !!template : step === 3 ? teamOk : false;
 
-  const addDirectory = (d: DirectoryTeamLite) => {
+  const addDirectory = (d: DirectoryTeam) => {
     if (teams.some((t) => t.directoryTeamId === d.id) || teams.length >= teamCount) return;
-    const t: WizardTeam = { id: uuid(), name: d.name, city: d.city || undefined, directoryTeamId: d.id };
+    const t: WizardTeam = { id: uuid(), name: d.publicName, city: d.city || undefined, directoryTeamId: d.id };
     setTeams([...teams, t]);
     if (!hostId) setHostId(t.id);
   };
@@ -148,8 +153,9 @@ export default function NewCompetitionPage() {
       const payload = buildCreatePayload({
         tournamentId, name: finalName, kind,
         eventId: mode === "existing" ? eventId : undefined,
+        hostTeamId: mode === "new" ? (hostTeamId || undefined) : undefined,
         event: mode === "new" ? { title: title.trim(), date: startsAt, location: place.trim() } : undefined,
-        template, plan, seats, teams, hostId: hostId || undefined, hostParticipates, seed, newId: uuid,
+        template, plan, seats, teams, hostId: hostId || undefined, hostParticipates, publicLive, seed, newId: uuid,
       });
       await createCompetition(payload);
       await reloadCompetitions();
@@ -162,7 +168,7 @@ export default function NewCompetitionPage() {
     }
   };
 
-  const shown = dir.filter((d) => (d.name + " " + d.city + " " + d.code + " " + formatTeamCode(d.code)).toLowerCase().includes(search.toLowerCase())).slice(0, 40);
+  const shown = dir.filter((d) => (d.publicName + " " + d.city + " " + d.teamCode + " " + formatTeamCode(d.teamCode)).toLowerCase().includes(search.toLowerCase())).slice(0, 40);
   const seatOrder = template ? seatsOf(template) : [];
 
   return (
@@ -200,6 +206,25 @@ export default function NewCompetitionPage() {
               <Field label="Beginn des ersten Spiels"><input type="time" className={inputCls} value={time} onChange={(e) => setTime(e.target.value)} /></Field>
             </div>
           )}
+          {mode === "new" && noHostTeam && (
+            <p className="mt-4 rounded-lg border border-amber-400/40 bg-amber-400/10 px-3 py-2 text-sm text-amber-300">
+              Für eine neue Veranstaltung brauchst du das Recht „Termine verwalten“ in einem Team (z. B. als Coach, Head Coach oder Team-Admin).
+              Du kannst stattdessen oben eine vorhandene Veranstaltung wählen, die du verwalten darfst.
+            </p>
+          )}
+          {mode === "new" && hostTeams && hostTeams.length > 1 && (
+            <div className="mt-4">
+              <Field label="Gastgeber-Team der Veranstaltung">
+                <select className={selectCls} value={hostTeamId} onChange={(e) => setHostTeamId(e.target.value)}>
+                  <option value="">Bitte wählen …</option>
+                  {hostTeams.map((t) => <option key={t.id} value={t.id}>{t.name} ({formatTeamCode(t.code)})</option>)}
+                </select>
+              </Field>
+            </div>
+          )}
+          {mode === "new" && hostTeams && hostTeams.length === 1 && (
+            <p className="mt-4 text-xs text-slate-400">Gastgeber-Team: {hostTeams[0].name}</p>
+          )}
           <div className="mt-4 grid gap-4 sm:grid-cols-2">
             <Field label="Art">
               <select className={selectCls} value={kind} onChange={(e) => setKind(e.target.value as "tournament" | "matchday")}>
@@ -235,6 +260,12 @@ export default function NewCompetitionPage() {
           <label className="mt-4 flex items-center gap-2 text-sm">
             <input type="checkbox" checked={hostParticipates} onChange={(e) => setHostParticipates(e.target.checked)} />
             Ausrichter nimmt teil (steht auf Platz A1, erstes Spiel als Heimteam)
+          </label>
+          <label className="mt-3 flex items-start gap-2 text-sm">
+            <input type="checkbox" className="mt-1" checked={publicLive} onChange={(e) => setPublicLive(e.target.checked)} />
+            <span>Live-Stand öffentlich zeigen
+              <span className="block text-xs text-slate-500">Nach dem Veröffentlichen sehen Besucher ohne Anmeldung Teams, Spielplan und Ergebnisse. Ausgeschaltet sehen sie nur Name und Status.</span>
+            </span>
           </label>
           {template ? (
             <div className="mt-5 rounded-xl border border-white/10 bg-white/5 p-4">
@@ -279,7 +310,7 @@ export default function NewCompetitionPage() {
                   <li key={d.id}>
                     <button type="button" disabled={added || teams.length >= teamCount} onClick={() => addDirectory(d)}
                       className="flex w-full items-center gap-3 py-2 text-left text-sm disabled:opacity-40">
-                      <span className="min-w-0 flex-1 truncate">{d.name}</span>
+                      <span className="min-w-0 flex-1 truncate">{d.publicName}</span>
                       <span className="text-xs text-slate-500">{d.city}</span>
                       <span className="text-xs text-[#C6FF00]">{added ? "✓" : "+"}</span>
                     </button>

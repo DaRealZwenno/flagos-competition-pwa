@@ -135,6 +135,7 @@ test("Anlege-Aufruf: Teams, Gruppen, Felder, Spiele und Platzhalter stimmen", ()
   const plan = buildPlan(T8_1, { startsAt: "2027-02-06T08:00:00.000Z", slotMinutes: 30, seats, teamNames: names });
   const p = buildCreatePayload({
     tournamentId: "t-1", name: "Wizard", kind: "tournament", event: { title: "Termin", date: "2027-02-06T08:00:00.000Z", location: "Neu-Ulm" },
+    hostTeamId: "club-team-1",
     template: T8_1, plan, seats, teams, hostId: "team-1", hostParticipates: true, seed: 9, newId,
   });
   assert.equal(p.teams.length, 8);
@@ -155,6 +156,8 @@ test("Anlege-Aufruf: Teams, Gruppen, Felder, Spiele und Platzhalter stimmen", ()
   assert.equal(new Set(p.games.map((g) => g.id)).size, 18);
   assert.equal(p.result_approval, false);                                         // ein Feld: ohne Freigabe
   assert.equal(p.event_id, null);
+  assert.equal(p.team_id, "club-team-1");                                         // neue Veranstaltung: Gastgeber-Team mitgeben
+  assert.equal(p.public_live, true);                                              // Standard: Live-Stand öffentlich
 });
 
 test("Anlege-Aufruf: vorhandener Termin, Final Six ohne Ausrichter, zwei Felder mit Freigabe", () => {
@@ -165,9 +168,12 @@ test("Anlege-Aufruf: vorhandener Termin, Final Six ohne Ausrichter, zwei Felder 
   const plan = buildPlan(T6_2, { startsAt: "2027-02-06T10:00:00.000Z", slotMinutes: 70, seats });
   const p = buildCreatePayload({
     tournamentId: "t-2", name: "Final Six", kind: "tournament", eventId: "ev-1",
-    template: T6_2, plan, seats, teams, hostParticipates: false, seed: 4, newId,
+    hostTeamId: "club-team-1",
+    template: T6_2, plan, seats, teams, hostParticipates: false, publicLive: false, seed: 4, newId,
   });
   assert.equal(p.event_id, "ev-1");
+  assert.equal(p.team_id, null);                                                  // vorhandene Veranstaltung: Gastgeber steht schon fest
+  assert.equal(p.public_live, false);                                             // Schalter aus: kein öffentlicher Live-Stand
   assert.equal(p.event, null);
   assert.equal(p.host_team_id, null);
   assert.equal(p.host_participates, false);

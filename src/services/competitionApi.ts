@@ -76,39 +76,51 @@ export function competitionStart(c: Competition): string | undefined {
 
 // ── Anlegen (Wizard) ──────────────────────────────────────────────────────────
 
-export interface OpenEvent { id: string; title: string; type: string; date: string; location: string }
+export interface OpenEvent { id: string; title: string; date: string; location: string; hostTeamId?: string }
 
-/** Kalender-Termine (Turnier/Spieltag) ohne Competition, ab 30 Tage zurück */
+/** Veranstaltungen (Turnier/Spieltag) ohne Competition, ab 30 Tage zurück. Der Zeilenschutz zeigt nur Veranstaltungen, die das Konto sehen darf;
+ *  ob es dafür auch eine Competition anlegen darf, prüft competition_create (Fehler competition_forbidden). */
 export async function fetchOpenEvents(): Promise<OpenEvent[]> {
   const since = new Date(Date.now() - 30 * 86_400_000).toISOString();
-  const [ev, tn] = await Promise.all([
-    supabase.from("team_events").select("id,title,type,date,location").in("type", ["game_day", "tournament"]).gte("date", since).order("date"),
-    supabase.from("tournaments").select("event_id"),
+  const [ev, co] = await Promise.all([
+    supabase.from("events").select("id,name,starts_at,location,host_team_id").is("archived_at", null).gte("starts_at", since).order("starts_at"),
+    supabase.from("competitions").select("event_id"),
   ]);
   if (ev.error) throw new Error(ev.error.message);
-  const used = new Set((tn.data ?? []).map((x: { event_id: string }) => x.event_id));
-  return (ev.data ?? []).filter((e: OpenEvent) => !used.has(e.id));
+  const used = new Set((co.data ?? []).map((x: { event_id: string | null }) => x.event_id));
+  return (ev.data ?? [])
+    .filter((e: { id: string }) => !used.has(e.id))
+    .map((e: { id: string; name: string; starts_at: string; location: string | null; host_team_id: string | null }) =>
+      ({ id: e.id, title: e.name, date: e.starts_at, location: e.location ?? "", hostTeamId: e.host_team_id ?? undefined }));
 }
 
-export interface DirectoryTeamLite { id: string; name: string; city: string; state: string; code: string }
+export interface HostTeam { id: string; name: string; code: string }
 
-/** Freigegebene Teams aus dem Team-Verzeichnis (zum Auswählen) */
-export async function fetchDirectoryTeams(): Promise<DirectoryTeamLite[]> {
-  const { data, error } = await supabase
-    .from("directory_teams").select("id,public_name,city,state,team_code").eq("review_status", "approved").order("public_name");
+/** Teams, in denen das Konto Termine anlegen darf (Recht calendar.write): nur dort kann es als Gastgeber eine neue Veranstaltung anlegen.
+ *  Gelesen werden die Teams, die der Zeilenschutz zeigt; das Recht je Team kommt aus my_permissions(). */
+export async function fetchMyHostTeams(): Promise<HostTeam[]> {
+  const { data, error } = await supabase.from("teams").select("id,public_name,team_code").is("archived_at", null).order("public_name").limit(100);
   if (error) throw new Error(error.message);
-  return (data ?? []).map((t: { id: string; public_name: string; city: string; state: string; team_code: string }) =>
-    ({ id: t.id, name: t.public_name, city: t.city, state: t.state, code: t.team_code }));
+  const rows = (data ?? []) as { id: string; public_name: string; team_code: string }[];
+  const may = await Promise.all(rows.map(async (t) => {
+    const r = await supabase.rpc("my_permissions", { p_team: t.id });
+    return !r.error && ((r.data ?? []) as string[]).includes("calendar.write");
+  }));
+  return rows.filter((_, i) => may[i]).map((t) => ({ id: t.id, name: t.public_name, code: t.team_code }));
 }
 
 const ERRORS: Record<string, string> = {
-  competition_forbidden: "Dir fehlt das Recht, eine Competition anzulegen (nötig: Plattform-Admin oder App-Rolle Admin, Coach oder Turnierleiter).",
+  competition_forbidden: "Dir fehlt das Recht dafür: Man braucht das Recht „Termine verwalten“ im Gastgeber-Team (z. B. Coach, Head Coach, Team-Admin) oder die Verwaltung der gewählten Veranstaltung.",
+  competition_host_team_required: "Du verwaltest mehrere Teams. Bitte wähle das Gastgeber-Team.",
   not_authenticated: "Bitte zuerst anmelden.",
-  competition_event_has_competition: "Zu diesem Termin gibt es schon eine Competition.",
-  competition_event_not_found: "Der gewählte Termin existiert nicht mehr.",
+  competition_event_has_competition: "Zu dieser Veranstaltung gibt es schon eine Competition.",
+  competition_event_not_found: "Die gewählte Veranstaltung existiert nicht mehr.",
   competition_missing_name: "Bitte einen Namen eintragen.",
+  competition_missing_id: "Es fehlt die Kennung der Competition (interner Fehler, bitte neu starten).",
+  competition_invalid_kind: "Die Art muss Turnier oder Spieltag sein.",
   competition_missing_event_date: "Bitte ein Datum für den Termin eintragen.",
   competition_too_large: "Der Plan ist zu groß.",
+  no_workspace: "Das Gastgeber-Team hat noch keinen Arbeitsbereich. Bitte an den Support wenden.",
 };
 const errorText = (m: string) => Object.entries(ERRORS).find(([k]) => m.includes(k))?.[1] ?? m;
 
@@ -119,9 +131,9 @@ export async function createCompetition(payload: Record<string, unknown>): Promi
   return data as string;
 }
 
-/** Entwurf veröffentlichen (Leitung/Ersteller); false = keine Berechtigung */
+/** Entwurf veröffentlichen (Turnierleitung/Ersteller); false = keine Berechtigung */
 export async function publishCompetition(id: string): Promise<boolean> {
-  const { data, error } = await supabase.from("tournaments").update({ status: "published" }).eq("id", id).select("id");
+  const { data, error } = await supabase.from("competitions").update({ status: "published" }).eq("id", id).select("id");
   if (error) throw new Error(error.message);
   return (data ?? []).length === 1;
 }

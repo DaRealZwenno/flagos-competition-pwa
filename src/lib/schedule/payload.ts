@@ -13,7 +13,8 @@ export interface PayloadInput {
   tournamentId: string;
   name: string;
   kind: "tournament" | "matchday";
-  eventId?: string;                                    // vorhandener Termin
+  eventId?: string;                                    // vorhandene Veranstaltung
+  hostTeamId?: string;                                 // Gastgeber-Team einer NEUEN Veranstaltung (nötig, wenn das Konto mehrere Teams verwaltet)
   event?: { title: string; date: string; location: string }; // sonst neuer Termin
   template: PlanTemplate;
   plan: PlannedGame[];                                 // aus buildPlan()
@@ -21,6 +22,7 @@ export interface PayloadInput {
   teams: WizardTeam[];
   hostId?: string;
   hostParticipates: boolean;
+  publicLive?: boolean;                                // Live-Stand für Besucher zeigen (Standard: ja)
   seed: number;
   resultApproval?: boolean;
   newId: () => string;
@@ -45,7 +47,9 @@ export function buildCreatePayload(i: PayloadInput) {
     kind: i.kind,
     event_id: i.eventId ?? null,
     event: i.eventId ? null : i.event,
+    team_id: i.eventId ? null : (i.hostTeamId ?? null),
     host_participates: i.hostParticipates,
+    public_live: i.publicLive ?? true,
     host_team_id: i.hostParticipates ? (i.hostId ?? i.seats["A1"] ?? null) : null,
     draw_seed: i.seed,
     result_approval: i.resultApproval ?? i.template.fields > 1,
