@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { supabase } from "../services/supabaseClient";
-import type { DirectoryTeam } from "../admin/adminTypes";
+import { fetchDirectoryTeams } from "../services/directoryApi";
+import type { DirectoryTeam } from "../types/directory";
 import { PageTitle, selectCls } from "../components/ui";
 import ViewToggle, { type ViewMode } from "../components/ViewToggle";
 import { formatTeamCode } from "../lib/teamCode";
@@ -31,8 +31,8 @@ function TeamCard({ team, listMode = false }: { team: DirectoryTeam; listMode?: 
     senior: "Senior", u19: "U19", u16: "U16", u13: "U13", u11: "U11", other: "Sonstige",
   };
 
-  const logo = team.logo_url ? (
-    <img src={team.logo_url} alt="" className="w-12 h-12 rounded-xl object-contain bg-white/5 flex-shrink-0" />
+  const logo = team.logoUrl ? (
+    <img src={team.logoUrl} alt="" className="w-12 h-12 rounded-xl object-contain bg-white/5 flex-shrink-0" />
   ) : (
     <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center flex-shrink-0">
       <span className="text-lg">🏈</span>
@@ -42,10 +42,10 @@ function TeamCard({ team, listMode = false }: { team: DirectoryTeam; listMode?: 
   const badges = (
     <div className="flex flex-wrap gap-2">
       <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-xs text-slate-300">
-        {ageLabel[team.age_group] ?? team.age_group}
+        {ageLabel[team.ageGroup] ?? team.ageGroup}
       </span>
       <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-xs text-slate-300">
-        {genderLabel[team.gender_category] ?? team.gender_category}
+        {genderLabel[team.genderCategory] ?? team.genderCategory}
       </span>
       {team.league && (
         <span className="rounded-full border border-white/10 bg-white/5 px-2.5 py-0.5 text-xs text-slate-300">
@@ -79,8 +79,8 @@ function TeamCard({ team, listMode = false }: { team: DirectoryTeam; listMode?: 
         {logo}
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-3 flex-wrap">
-            <p className="font-mono text-xs text-[#C6FF00] tracking-widest">{formatTeamCode(team.team_code)}</p>
-            <h3 className="font-bold text-slate-50 truncate">{team.public_name}</h3>
+            <p className="font-mono text-xs text-[#C6FF00] tracking-widest">{formatTeamCode(team.teamCode)}</p>
+            <h3 className="font-bold text-slate-50 truncate">{team.publicName}</h3>
             <p className="text-sm text-slate-400">{team.city}{team.state ? `, ${team.state}` : ""}</p>
           </div>
           <div className="mt-2 flex flex-wrap items-center gap-3">
@@ -96,8 +96,8 @@ function TeamCard({ team, listMode = false }: { team: DirectoryTeam; listMode?: 
     <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-5 hover:border-[#C6FF00]/30 hover:bg-white/[0.07] transition">
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
-          <p className="font-mono text-xs text-[#C6FF00] tracking-widest mb-1">{formatTeamCode(team.team_code)}</p>
-          <h3 className="font-bold text-slate-50 truncate">{team.public_name}</h3>
+          <p className="font-mono text-xs text-[#C6FF00] tracking-widest mb-1">{formatTeamCode(team.teamCode)}</p>
+          <h3 className="font-bold text-slate-50 truncate">{team.publicName}</h3>
           <p className="text-sm text-slate-400 mt-0.5">{team.city}{team.state ? `, ${team.state}` : ""}</p>
         </div>
         {logo}
@@ -111,6 +111,7 @@ function TeamCard({ team, listMode = false }: { team: DirectoryTeam; listMode?: 
 function TeamDirectoryPublicPage() {
   const [teams, setTeams] = useState<DirectoryTeam[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState(false);
   const [search, setSearch] = useState("");
   const [filterState, setFilterState] = useState("");
   const [filterAge, setFilterAge] = useState("");
@@ -119,16 +120,10 @@ function TeamDirectoryPublicPage() {
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
-      const { data } = await supabase
-        .from("directory_teams")
-        .select("*, club:directory_clubs(*)")
-        .eq("review_status", "approved")
-        .order("public_name");
-      if (cancelled) return;
-      setTeams(data ?? []);
-      setLoading(false);
-    })();
+    fetchDirectoryTeams()
+      .then((list) => { if (!cancelled) setTeams(list); })
+      .catch(() => { if (!cancelled) setLoadError(true); })
+      .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, []);
 
@@ -138,13 +133,13 @@ function TeamDirectoryPublicPage() {
   const filtered = teams.filter(t => {
     const q = search.toLowerCase();
     const matchSearch = !q ||
-      t.public_name.toLowerCase().includes(q) ||
-      t.team_code.toLowerCase().includes(q) ||
-      formatTeamCode(t.team_code).toLowerCase().includes(q) ||
+      t.publicName.toLowerCase().includes(q) ||
+      t.teamCode.toLowerCase().includes(q) ||
+      formatTeamCode(t.teamCode).toLowerCase().includes(q) ||
       t.city.toLowerCase().includes(q);
     const matchState = !filterState || t.state === filterState;
-    const matchAge = !filterAge || t.age_group === filterAge;
-    const matchGender = !filterGender || t.gender_category === filterGender;
+    const matchAge = !filterAge || t.ageGroup === filterAge;
+    const matchGender = !filterGender || t.genderCategory === filterGender;
     return matchSearch && matchState && matchAge && matchGender;
   });
 
@@ -207,6 +202,8 @@ function TeamDirectoryPublicPage() {
       {/* Team Grid */}
       {loading ? (
         <div className="py-16 text-center text-slate-500">Teams werden geladen…</div>
+      ) : loadError ? (
+        <div className="py-16 text-center text-amber-300">Das Team-Verzeichnis konnte nicht geladen werden. Bitte später erneut versuchen.</div>
       ) : filtered.length === 0 ? (
         <div className="py-16 text-center text-slate-500">
           Keine Teams gefunden.
