@@ -181,3 +181,19 @@ test("Anlege-Aufruf: vorhandener Termin, Final Six ohne Ausrichter, zwei Felder 
   assert.equal(p.result_approval, true);                                          // mehrere Felder: Freigabe an
   assert.equal(new Set(p.games.map((g) => g.field_id)).size, 2);
 });
+
+import { hostTeamPrefill } from "../src/lib/schedule/hostPrefill.ts";
+
+test("Gastgeber-Team vorbelegen: nur wenn der Ausrichter teilnimmt und das Team bekannt ist", () => {
+  const dir = [{ id: "t1", name: "Spartans", city: "Neu-Ulm" }, { id: "t2", name: "Andere" }];
+  const mine = [{ id: "t1", name: "Neu-Ulm Spartans" }, { id: "t9", name: "Ungelistet" }];
+  const base = { hostParticipates: true, mode: "new" as const, hostTeamId: "t1", hostTeams: mine, directory: dir };
+  assert.deepEqual(hostTeamPrefill(base), { id: "t1", name: "Spartans", city: "Neu-Ulm" });             // Verzeichnis hat Vorrang (mit Stadt)
+  assert.deepEqual(hostTeamPrefill({ ...base, hostTeamId: "t9" }), { id: "t9", name: "Ungelistet" });   // nicht gelistet: eigene Teamliste
+  assert.equal(hostTeamPrefill({ ...base, hostParticipates: false }), null);                            // Ausrichter nimmt nicht teil
+  assert.equal(hostTeamPrefill({ ...base, hostTeamId: undefined }), null);                              // kein Gastgeber gewählt
+  assert.equal(hostTeamPrefill({ ...base, hostTeamId: "unbekannt" }), null);                            // Name nicht bekannt: nichts erfinden
+  // vorhandene Veranstaltung: ihr Gastgeber zählt, nicht die Auswahl für neue Veranstaltungen
+  assert.deepEqual(hostTeamPrefill({ ...base, mode: "existing", eventHostTeamId: "t2" }), { id: "t2", name: "Andere" });
+  assert.equal(hostTeamPrefill({ ...base, mode: "existing", eventHostTeamId: undefined }), null);
+});

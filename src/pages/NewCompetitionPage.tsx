@@ -11,6 +11,7 @@ import { TEMPLATES, findTemplate } from "../lib/schedule/templates";
 import { draw, newSeed, type SeatMap } from "../lib/schedule/draw";
 import { buildPlan, refLabel } from "../lib/schedule/plan";
 import { buildCreatePayload, type WizardTeam } from "../lib/schedule/payload";
+import { hostTeamPrefill } from "../lib/schedule/hostPrefill";
 import { seatsOf } from "../lib/schedule/types";
 import { formatTeamCode } from "../lib/teamCode";
 import { fmtDate, fmtTime } from "../lib/format";
@@ -54,6 +55,7 @@ export default function NewCompetitionPage() {
   const [teams, setTeams] = useState<WizardTeam[]>([]);
   const [freeName, setFreeName] = useState("");
   const [hostId, setHostId] = useState("");
+  const [prefilled, setPrefilled] = useState(false);   // Gastgeber-Team schon einmal vorbelegt (danach nicht wieder, wenn die Person es entfernt hat)
 
   // 4 Auslosung
   const [seed, setSeed] = useState(0);
@@ -133,6 +135,19 @@ export default function NewCompetitionPage() {
     setSeats(draw(template, teams.map((t) => t.id), { seed: nextSeed, hostId: hostId || undefined, hostParticipates }));
   };
   const goNext = () => {
+    if (step === 2 && !prefilled) {
+      // Gastgeber-Team als erstes Team und Ausrichter vorbelegen; die Person kann es mit ✕ wieder entfernen
+      setPrefilled(true);
+      const host = hostTeamPrefill({
+        hostParticipates, mode, hostTeamId: hostTeamId || undefined, eventHostTeamId: chosenEvent?.hostTeamId,
+        hostTeams: (hostTeams ?? []).map((h) => ({ id: h.id, name: h.name })),
+        directory: dir.map((d) => ({ id: d.id, name: d.publicName, city: d.city || undefined })),
+      });
+      if (host && teams.length === 0) {
+        const t: WizardTeam = { id: uuid(), name: host.name, city: host.city, directoryTeamId: host.id };
+        setTeams([t]); setHostId(t.id);
+      }
+    }
     if (step === 3) { doDraw(newSeed()); }
     setStep((step + 1) as Step);
   };
@@ -242,7 +257,7 @@ export default function NewCompetitionPage() {
         <Card title="2. Format">
           <div className="grid gap-4 sm:grid-cols-3">
             <Field label="Teams">
-              <select className={selectCls} value={teamCount} onChange={(e) => { setTeamCount(Number(e.target.value)); setTeams([]); setHostId(""); }}>
+              <select className={selectCls} value={teamCount} onChange={(e) => { setTeamCount(Number(e.target.value)); setTeams([]); setHostId(""); setPrefilled(false); }}>
                 {[...new Set(TEMPLATES.map((t) => t.teams))].sort().map((n) => <option key={n} value={n}>{n} Teams</option>)}
               </select>
             </Field>
