@@ -10,6 +10,10 @@ export interface CompetitionTeam {
   name: string;
   shortName: string;
   city?: string;
+  /** Logo und Farben der Anmeldung (Hex bzw. white/black), wenn vorhanden */
+  logoUrl?: string;
+  color?: string;
+  textColor?: string;
 }
 
 export interface CompetitionGroup {
