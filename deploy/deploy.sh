@@ -72,7 +72,7 @@ done < "$CONFIG"
 [[ "$SSH_HOST" =~ ^[A-Za-z0-9.-]+$ ]]   || die "SSH_HOST ungültig"
 [[ "$SSH_PORT" =~ ^[0-9]+$ ]]           || die "SSH_PORT ungültig"
 [[ "$SSH_USER" =~ ^[a-z][a-z0-9_-]*$ ]] || die "SSH_USER ungültig"
-[ "$REMOTE_DIR" = "$EXPECTED_REMOTE_DIR" ] || die "Unerwartetes Deploy-Ziel „$REMOTE_DIR“ (erlaubt: $EXPECTED_REMOTE_DIR)"
+[ "$REMOTE_DIR" = "$EXPECTED_REMOTE_DIR" ] || die "Unerwartetes Deploy-Ziel „${REMOTE_DIR}“ (erlaubt: $EXPECTED_REMOTE_DIR)"
 [[ "$AUTH_USER_FILE" =~ ^/home/${SSH_USER}/\.htpasswds/[A-Za-z0-9._/-]+$ ]] || die "AUTH_USER_FILE ungültig"
 [ -z "$SSH_KEY" ] || [ -f "$SSH_KEY" ] || die "SSH-Schlüssel nicht gefunden: $SSH_KEY"
 readonly REMOTE_ABS="/home/${SSH_USER}/${REMOTE_DIR}"
@@ -96,7 +96,7 @@ else
   PROBLEMS=(); PCOUNT=0
   problem() { PROBLEMS+=("$1"); PCOUNT=$((PCOUNT+1)); }
   BRANCH="$(git branch --show-current)"
-  [ "$BRANCH" = "main" ] || problem "Du bist auf Branch „$BRANCH“, nicht auf main  →  git checkout main"
+  [ "$BRANCH" = "main" ] || problem "Du bist auf Branch „${BRANCH}“, nicht auf main  →  git checkout main"
   [ -z "$(git status --porcelain)" ] || problem "Uncommittete Änderungen  →  erst committen (git status)"
   if git fetch --quiet origin main 2>/dev/null; then
     LOCAL="$(git rev-parse HEAD)"; REMOTE_HEAD="$(git rev-parse origin/main)"
@@ -186,7 +186,7 @@ fi
 # ---------- 4. Ziel auf dem Server prüfen ----------
 step "4/6 Ziel prüfen ($SSH_USER@$SSH_HOST:~/$REMOTE_DIR)"
 REAL="$(remote "cd ~/$REMOTE_DIR && pwd -P")" || die "SSH-Verbindung oder Zielordner fehlgeschlagen (Host-Key geändert? → nicht ignorieren!)"
-[ "$REAL" = "$REMOTE_ABS" ] || die "Zielordner zeigt auf „$REAL“ statt $REMOTE_ABS – Abbruch"
+[ "$REAL" = "$REMOTE_ABS" ] || die "Zielordner zeigt auf „${REAL}“ statt $REMOTE_ABS – Abbruch"
 remote "test -f '$AUTH_USER_FILE'" || die "Passwortdatei $AUTH_USER_FILE fehlt auf dem Server – Verzeichnisschutz in cPanel anlegen"
 ok "Ziel und Passwortdatei vorhanden"
 if [ $DRY -eq 0 ]; then
