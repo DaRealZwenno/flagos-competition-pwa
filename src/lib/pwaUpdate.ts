@@ -14,14 +14,14 @@ const CHECK_EVERY_MS = 30 * 60 * 1000;
 const MIN_GAP_MS = 60 * 1000; // nicht öfter als einmal pro Minute nachsehen
 
 let needRefresh = false;
-let apply: ((reload?: boolean) => Promise<void>) | null = null;
 let registration: ServiceWorkerRegistration | undefined;
 let lastCheck = 0;
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((l) => l());
 
 export function initPwaUpdates() {
-  apply = registerSW({
+  // registerSW nur für die Erkennung („Update verfügbar“). Eingespielt wird über applyUpdate (unten).
+  registerSW({
     immediate: true,
     onNeedRefresh() {
       needRefresh = true;
@@ -95,7 +95,25 @@ export async function fetchLiveVersion(): Promise<LiveVersion | null> {
 }
 
 export const appVersion = __APP_VERSION__;
-export const applyUpdate = () => void apply?.(true);
+/**
+ * Neue Version einspielen: wartende Version aktivieren, dann neu laden.
+ *
+ * Nicht über updateSW(true) von vite-plugin-pwa: das lädt erst neu, wenn die neue Version die Seite übernimmt
+ * (controllerchange). Beim ersten Start einer frisch installierten App ist die Seite aber noch gar nicht vom
+ * Service Worker gesteuert – dann kommt dieses Signal nie und „Neu laden“ bewirkt nichts (so passiert in der
+ * Safari-Web-App von FlagOS Events, 25.10.2026). Deshalb: neu laden, sobald die neue Version aktiv ist ODER die Seite
+ * übernimmt; spätestens nach 4 Sekunden. Ist keine Version (mehr) wartend, sofort neu laden.
+ */
+export function applyUpdate() {
+  let done = false;
+  const reload = () => { if (!done) { done = true; window.location.reload(); } };
+  const waiting = registration?.waiting;
+  if (!waiting) { reload(); return; }
+  navigator.serviceWorker?.addEventListener("controllerchange", reload);
+  waiting.addEventListener("statechange", () => { if (waiting.state === "activated") reload(); });
+  waiting.postMessage({ type: "SKIP_WAITING" });
+  window.setTimeout(reload, 4000);
+}
 /** Hinweis unten wegklicken – das Update bleibt offen (Zahl am Zahnrad, Einstellungen → App-Version) */
 let bannerHidden = false;
 export const dismissUpdate = () => { bannerHidden = true; emit(); };
